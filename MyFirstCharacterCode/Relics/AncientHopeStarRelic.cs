@@ -42,8 +42,8 @@ public class AncientHopeStarRelic : MyFirstCharacterRelic
         {
             await PowerCmd.Apply<CasterFormTwoPower>(new BlockingPlayerChoiceContext(), c, 1, c, null, false);
             SpriteController.ApplyFrames(c, CasterFormTwoPower.FramesPath);
-            await PowerCmd.Apply<StrengthPower>(new BlockingPlayerChoiceContext(), c, 4, c, null, false);
-            await PowerCmd.Apply<VulnerablePower>(new BlockingPlayerChoiceContext(), c, 1, c, null, false);
+            await PowerCmd.Apply<StrengthPower>(new BlockingPlayerChoiceContext(), c, CasterFormValues.FormTwoStrength(c), c, null, false);
+            await PowerCmd.Apply<VulnerablePower>(new BlockingPlayerChoiceContext(), c, CasterFormValues.FormTwoVulnerable(c), c, null, false);
             await NpCharge.SyncDisplay(c);
             await CasterCardHelpers.CheckNPThreshold(c);
         }

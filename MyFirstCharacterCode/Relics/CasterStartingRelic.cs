@@ -39,8 +39,8 @@ public class CasterStartingRelic : MyFirstCharacterRelic
         {
             await PowerCmd.Apply<CasterFormTwoPower>(new BlockingPlayerChoiceContext(), c, 1, c, null, false);
             SpriteController.ApplyFrames(c, CasterFormTwoPower.FramesPath);
-            await PowerCmd.Apply<StrengthPower>(new BlockingPlayerChoiceContext(), c, 2, c, null, false);      // +2力量（永久）
-            await PowerCmd.Apply<VulnerablePower>(new BlockingPlayerChoiceContext(), c, 2, c, null, false);    // +2易伤（自身）
+            await PowerCmd.Apply<StrengthPower>(new BlockingPlayerChoiceContext(), c, CasterFormValues.FormTwoStrength(c), c, null, false);
+            await PowerCmd.Apply<VulnerablePower>(new BlockingPlayerChoiceContext(), c, CasterFormValues.FormTwoVulnerable(c), c, null, false);
             // 恢复上一场战斗继承的宝具值显示条，并检查是否已过阈值
             await NpCharge.SyncDisplay(c);
             await CasterCardHelpers.CheckNPThreshold(c);
