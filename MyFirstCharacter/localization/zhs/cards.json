@@ -14,7 +14,7 @@
   "MYFIRSTCHARACTER-ETERNAL_FEAST.title": "不散之宴席",
   "MYFIRSTCHARACTER-ETERNAL_FEAST.description": "每当你打出宝具卡时，获得30点宝具值。",
   "MYFIRSTCHARACTER-CRADLING_YOUR_HOPE_STAR.title": "环抱着你的希望之星",
-  "MYFIRSTCHARACTER-CRADLING_YOUR_HOPE_STAR.description": "消耗所有的状态牌，清除自己和同伴的易伤、虚弱、脆弱，获得1层[gold]对肃正防御[/gold]。抽 {Cards:diff()} 张牌，回复 {Energy:energyIcons()}。造成1点全体伤害与1点单体伤害，消耗牌堆每张牌使二者+{AoeMult:diff()} / +{StMult:diff()}。",
+  "MYFIRSTCHARACTER-CRADLING_YOUR_HOPE_STAR.description": "消耗你所有的状态牌，清除自己和同伴身上所有的易伤，虚弱和脆弱效果，获得一层[gold]对肃正防御[/gold]。抽 {Cards:diff()} 张牌，回复 {Energy:energyIcons()}。对所有敌人造成1点伤害，并且你的消耗牌堆中每有一张牌，伤害就增加 {AoeMult:diff()} 点。对选择的敌人造成1点伤害，并且你的消耗牌堆中每有一张牌，伤害就增加 {StMult:diff()} 点。",
   "MYFIRSTCHARACTER-CASTER_CALAMITY.title": "灾厄",
   "MYFIRSTCHARACTER-CASTER_CALAMITY.description": "这张牌被消耗时，将此牌的复制品添加到你的弃牌堆。",
   "MYFIRSTCHARACTER-ALONE.title": "独自一人",
