@@ -393,8 +393,8 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 10m)];
-    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<CalamityConversionPower>(ctx, Owner.Creature, IsUpgraded ? 15 : 10, Owner.Creature, this, false); }
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 5m)];
+    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<CalamityConversionPower>(ctx, Owner.Creature, (int)DynamicVars["Np"].BaseValue, Owner.Creature, this, false); }
     protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(5m); }
 }
 
