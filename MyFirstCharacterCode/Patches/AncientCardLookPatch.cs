@@ -14,7 +14,7 @@ using MyFirstCharacter.MyFirstCharacterCode.Cards;
 namespace MyFirstCharacter.MyFirstCharacterCode.Patches;
 
 /// <summary>
-/// 让白名单里的 24 张卡借用游戏「先古卡」的全卡面渲染：隐藏普通卡框 / 立绘 / 横幅，改用铺满
+/// 让白名单里的 29 张卡借用游戏「先古卡」的全卡面渲染：隐藏普通卡框 / 立绘 / 横幅，改用铺满
 /// 整卡的 AncientPortrait，再叠先古边框、文字底与火焰横幅。完全不碰 CardRarity —— 稀有度同时是
 /// 奖励池、起始卡组与升级规则的输入，改了会把卡从普通奖励池里摘掉。
 ///
@@ -43,6 +43,9 @@ public static class AncientCardLookPatch
         typeof(StarRendingThunder), typeof(MirrorCopy), typeof(ParadiseFairy),
         typeof(AttackDefenseOne), typeof(GiveStars), typeof(CalamityIsEvil),
         typeof(UndegradedFairyEye), typeof(FairyDance), typeof(RingTheBell),
+        // 第三批 5 张
+        typeof(ChosenSword), typeof(HuntMark), typeof(DistantHope),
+        typeof(StarGuidance), typeof(BloodCrown),
     ];
 
     // 路径取自 CardModel.AncientBorderPath / AncientTextBgPath。这两个字符串必须与游戏逐字一致：
