@@ -138,9 +138,15 @@ public static class GrowingBladeTracker
     /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>()];
 
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("AddCalamity", 2m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
+        if (CombatState == null) return;          // 后续要 CreateCard，先挡掉空引用
         int repeats = IsUpgraded ? 2 : 1;
+        int add = (int)DynamicVars["AddCalamity"].BaseValue;
         for (int i = 0; i < repeats; i++) {
+            for (int k = 0; k < add; k++)
+                CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
+                    CombatState.CreateCard<CasterCalamity>(Owner), PileType.Hand, Owner));
             var calamities = new List<CardModel>();
             foreach (var pile in new[] { PileType.Hand, PileType.Draw, PileType.Discard })
                 calamities.AddRange(pile.GetPile(Owner).Cards.Where(c => c is CasterCalamity).ToList());
@@ -166,10 +172,10 @@ public static class GrowingBladeTracker
 
 [Pool(typeof(CasterCardPool))] public class UnreceivedHairpin() : MyFirstCharacterCard(0, CardType.Skill, CardRarity.Rare, TargetType.Self) {
     protected override bool HasEnergyCostX => true;
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new RepeatVar(2)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new RepeatVar(1)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         int x = ResolveEnergyXValue();
-        int times = x * (IsUpgraded ? 3 : 2);
+        int times = x * DynamicVars.Repeat.IntValue;   // 倍数 = 1 / 升级 2，读的与卡面同一份声明
         for (int i = 0; i < times; i++)
             await CasterCardHelpers.SwitchForm(ctx, this);
     }
@@ -198,9 +204,11 @@ public static class GrowingBladeTracker
     /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>(), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 40m)];
+    // 卡片自带「消耗」：文案与关键字都要有（实现里原先漏了关键字）
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 50m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        await NpCharge.Gain(Owner.Creature, IsUpgraded ? 50 : 40);
+        await NpCharge.Gain(Owner.Creature, (int)DynamicVars["Np"].BaseValue);   // 读声明，别再写一份字面量
         int current = PileType.Hand.GetPile(Owner).Cards.Count;
         int toAdd = Math.Max(0, 10 - current);
         for (int i = 0; i < toAdd; i++) {
@@ -208,7 +216,7 @@ public static class GrowingBladeTracker
             CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(cal, PileType.Hand, Owner));
         }
     }
-    protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(10m); }
+    protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(20m); }   // 50 -> 70
 }
 
 [Pool(typeof(CasterCardPool))] public class DistantHope() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Rare, TargetType.Self) {
