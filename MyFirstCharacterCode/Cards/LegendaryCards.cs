@@ -138,7 +138,6 @@ public static class GrowingBladeTracker
     /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>()];
 
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new RepeatVar(1)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         int repeats = IsUpgraded ? 2 : 1;
         for (int i = 0; i < repeats; i++) {
@@ -148,7 +147,8 @@ public static class GrowingBladeTracker
             foreach (var c in calamities) await CardCmd.Exhaust(ctx, c);
         }
     }
-    protected override void OnUpgrade() { DynamicVars.Repeat.UpgradeValueBy(1m); }
+    // 升级只把描述里的「那之后，再执行一次。」加上；执行次数由 IsUpgraded 决定（1 -> 2），无需 DynamicVar
+    protected override void OnUpgrade() { }
 }
 
 [Pool(typeof(CasterCardPool))] public class EntrustedFuture() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Rare, TargetType.Self) {

@@ -138,7 +138,7 @@
   "MYFIRSTCHARACTER-FURNACE_FAIRY.title": "不断毁灭的救世之梦",
   "MYFIRSTCHARACTER-FURNACE_FAIRY.description": "选择抽牌堆中{IfUpgraded:show:最多|} {Cards:diff()} 张牌，之后随机将未选中的牌的一半数目[gold]消耗[/gold]。",
   "MYFIRSTCHARACTER-CALAMITY_IS_EVIL.title": "灾厄即妖精之恶",
-  "MYFIRSTCHARACTER-CALAMITY_IS_EVIL.description": "[gold]消耗[/gold]所有「[gold]灾厄[/gold]」，并添加等量「[gold]灾厄[/gold]」到你的弃牌堆。重复执行 {Repeat:diff()} 次。",
+  "MYFIRSTCHARACTER-CALAMITY_IS_EVIL.description": "[gold]消耗[/gold]所有「[gold]灾厄[/gold]」，并添加等量「[gold]灾厄[/gold]」到你的弃牌堆。{IfUpgraded:show:那之后，再执行一次。|}",
   "MYFIRSTCHARACTER-ENTRUSTED_FUTURE.title": "被托付的光辉未来",
   "MYFIRSTCHARACTER-ENTRUSTED_FUTURE.description": "选择[gold][gold]消耗[/gold]牌堆[/gold]中的 {Cards:diff()} 张牌返回手牌。",
   "MYFIRSTCHARACTER-UNRECEIVED_HAIRPIN.title": "走出失意之庭",

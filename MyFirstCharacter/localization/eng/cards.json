@@ -138,7 +138,7 @@
   "MYFIRSTCHARACTER-FURNACE_FAIRY.title": "The Ever-Destroyed Dream of Salvation",
   "MYFIRSTCHARACTER-FURNACE_FAIRY.description": "Choose {IfUpgraded:show:up to |}{Cards:diff()} cards from your Draw pile, then [gold]Exhaust[/gold] half of the unselected cards at random.",
   "MYFIRSTCHARACTER-CALAMITY_IS_EVIL.title": "Calamity Is the Evil of Fairies",
-  "MYFIRSTCHARACTER-CALAMITY_IS_EVIL.description": "[gold]Exhaust[/gold] all [gold]Calamity[/gold]. Repeat {Repeat:diff()} time.",
+  "MYFIRSTCHARACTER-CALAMITY_IS_EVIL.description": "[gold]Exhaust[/gold] all [gold]Calamity[/gold], then add an equal number of [gold]Calamity[/gold] to your discard pile.{IfUpgraded:show: Then do it again.|}",
   "MYFIRSTCHARACTER-ENTRUSTED_FUTURE.title": "The Glorious Future Entrusted",
   "MYFIRSTCHARACTER-ENTRUSTED_FUTURE.description": "Choose {Cards:diff()} cards from your [gold][gold]Exhaust[/gold] pile[/gold] and return them to your hand.",
   "MYFIRSTCHARACTER-UNRECEIVED_HAIRPIN.title": "Leaving the Garden of Despair",
