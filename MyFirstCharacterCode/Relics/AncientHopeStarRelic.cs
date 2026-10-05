@@ -7,7 +7,6 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MyFirstCharacter.MyFirstCharacterCode.Cards;
-using MyFirstCharacter.MyFirstCharacterCode.Extensions;
 using MyFirstCharacter.MyFirstCharacterCode.FGOCore;
 using MyFirstCharacter.MyFirstCharacterCode.Powers;
 
@@ -20,10 +19,14 @@ public class AncientHopeStarRelic : MyFirstCharacterRelic
     public override RelicRarity Rarity => RelicRarity.Ancient;
     public override bool ShouldReceiveCombatHooks => true;
 
-    // 遗物图标与起始遗物一致
-    public override string PackedIconPath => "casterstartingrelic.png".RelicImagePath();
-    protected override string PackedIconOutlinePath => "casterstartingrelic_outline.png".RelicImagePath();
-    protected override string BigIconPath => "casterstartingrelic.png".BigRelicImagePath();
+    // 图标不复写，走基类按 id 算出来的路径（MyFirstCharacterRelic 里）：
+    //   images/relics/ancient_hope_star_relic.png + 同名 _outline.png + big/ 里的同名大图。
+    // 原来这里复写了 PackedIconPath => "casterstartingrelic.png"（想复用起始遗物图标），
+    // 但那个文件名是错的 —— 磁盘上是 caster_starting_relic.png（带下划线）。
+    // RelicImagePath() 找不到就回退到 relic.png，那是个 1x1 像素的占位图，
+    // 于是这个遗物的图标「看不见」。删掉复写即用上专画的 ancient_hope_star_relic.png。
+    // 注：ancient_hope_star_relic_outline.png 不存在（其余遗物的 _outline 也都是 1x1 占位），
+    // 会走同样的回退 + 记一条 Info 日志，功能上无影响。
 
     public override async Task BeforeCombatStartLate()
     {

@@ -113,6 +113,12 @@ public static class CasterCardHelpers
 }
 [Pool(typeof(CasterCardPool))] public class CasterStrike() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy) {
     public override bool IsBasicStrikeOrDefend => true;
+    // 游戏识别「基础打击/防御」主要靠 Tag，不是靠 IsBasicStrikeOrDefend：
+    // 全 dll 里 Tags.Contains(CardTag.Strike/Defend) 约 20 处（先古事件的「变化一张打击」
+    // 「移除 2 张打击」等选项的开启条件、CardPool.AllCards.First(...) 取基础打击/防御……），
+    // 而 IsBasicStrikeOrDefend 只在 PandorasBox 一处被读。不声明 Tag 的话那些功能全部落空，
+    // 其中 CardPool 那处用的是 First()，找不到会直接抛异常。
+    protected override HashSet<CardTag> CanonicalTags => new HashSet<CardTag> { CardTag.Strike };
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(6m, ValueProp.Move)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx); }
     protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(3m); }
@@ -120,6 +126,7 @@ public static class CasterCardHelpers
 [Pool(typeof(CasterCardPool))] public class DefendCaster() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Basic, TargetType.Self) {
     public override bool GainsBlock => true;
     public override bool IsBasicStrikeOrDefend => true;
+    protected override HashSet<CardTag> CanonicalTags => new HashSet<CardTag> { CardTag.Defend };
     protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(5m, ValueProp.Move)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play); }
     protected override void OnUpgrade() { DynamicVars.Block.UpgradeValueBy(3m); }
@@ -271,6 +278,13 @@ public static class CasterCardHelpers
 // ===== NOBLE PHANTASM =====
 [Pool(typeof(CasterCardPool))] public class CradlingYourHopeStar() : MyFirstCharacterCard(0, CardType.Attack, CardRarity.Token, TargetType.AnyEnemy) {
     protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(2), new EnergyVar(2), new DynamicVar("AoeMult", 2m), new DynamicVar("StMult", 3m)];
+
+    /// <summary>
+    /// 宝具卡，不该被随机生成出来：它 0 费，正好符合「大奖」(Jackpot) 挑 0 费牌的过滤条件，
+    /// 而 FilterForCombat 只排除 Basic/Ancient/Event —— Token 不在排除列，所以实测会被大奖生成。
+    /// 卡池那边还有一道 FilterThroughEpochs，负责「变化」等非战斗路径。
+    /// </summary>
+    public override bool CanBeGeneratedInCombat => false;
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Retain, CardKeyword.Exhaust];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         if (!NpCharge.CanPay(Owner.Creature, 100)) return;

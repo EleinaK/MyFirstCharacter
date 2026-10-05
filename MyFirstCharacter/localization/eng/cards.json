@@ -14,7 +14,7 @@
   "MYFIRSTCHARACTER-ETERNAL_FEAST.title": "The Undying Feast",
   "MYFIRSTCHARACTER-ETERNAL_FEAST.description": "Whenever you play a Noble Phantasm, gain 30 NP.",
   "MYFIRSTCHARACTER-CRADLING_YOUR_HOPE_STAR.title": "Cradling Your Hope Star",
-  "MYFIRSTCHARACTER-CRADLING_YOUR_HOPE_STAR.description": "Exhaust all your Status cards. Remove all Vulnerable, Weak and Frail from you and your allies. Gain 1 [gold]Solace Defense[/gold]. Draw {Cards:diff()} cards and regain {Energy:energyIcons()}. Deal 1 damage to ALL enemies, +{AoeMult:diff()} for each card in your Exhaust pile. Deal 1 damage to the targeted enemy, +{StMult:diff()} for each card in your Exhaust pile.",
+  "MYFIRSTCHARACTER-CRADLING_YOUR_HOPE_STAR.description": "Exhaust all Status cards. Remove Vulnerable, Weak and Frail from you and your allies. Gain 1 [gold]Solace Defense[/gold]. Draw {Cards:diff()} cards and regain {Energy:energyIcons()}. Deal 1 damage to ALL enemies and 1 damage to the targeted enemy; each card in your Exhaust pile adds +{AoeMult:diff()} / +{StMult:diff()}.",
   "MYFIRSTCHARACTER-CASTER_CALAMITY.title": "Calamity",
   "MYFIRSTCHARACTER-CASTER_CALAMITY.description": "When this card is Exhausted, add a copy of it to your Discard pile.",
   "MYFIRSTCHARACTER-ALONE.title": "Alone",
