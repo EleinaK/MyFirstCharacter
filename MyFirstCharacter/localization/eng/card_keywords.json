@@ -1,3 +1,4 @@
 {
-  
+  "MYFIRSTCHARACTER-NPGAUGE.title": "NP",
+  "MYFIRSTCHARACTER-NPGAUGE.description": "Maximum 300. Carries over into the next combat capped at 100, and the run starts with 50. When NP reaches 100 or more, add an NP card to your hand. Playing an NP card spends 100 NP; afterwards, if NP is still 100 or more, add another NP card to your hand."
 }

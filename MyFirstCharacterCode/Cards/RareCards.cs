@@ -13,6 +13,7 @@ using MegaCrit.Sts2.Core.ValueProps;
 using MyFirstCharacter.MyFirstCharacterCode.FGOCore;
 using MyFirstCharacter.MyFirstCharacterCode.Powers;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Models.Cards;
 
 namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 
@@ -29,6 +30,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class StarFurnace() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
+    /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(9m, ValueProp.Move), new DynamicVar("NpThreshold", 50m), new DynamicVar("Enhanced", 14m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         int threshold = IsUpgraded ? 40 : 50;
@@ -60,6 +64,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class HolySwordFlash() : MyFirstCharacterCard(2, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
+    /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<VulnerablePower>()];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(10m, ValueProp.Move)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target)
@@ -103,6 +110,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class HolySwordJudgment() : MyFirstCharacterCard(3, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
+    /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(27m, ValueProp.Move), new DynamicVar("Np", 40m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         var cmd = await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
@@ -137,6 +147,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class StrikeWeakPoint() : MyFirstCharacterCard(0, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
+    /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<VulnerablePower>()];
+
     private const string VulnVarName = "VulnMult";
 
     /// <summary>
@@ -196,6 +209,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class HuntMark() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
+    /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(5m, ValueProp.Move), new DynamicVar("Np", 10m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
@@ -252,6 +268,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class UndegradedFairyEye() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
+    /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<WeakPower>()];
+
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(6m, ValueProp.Move), new PowerVar<WeakPower>(1m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
@@ -292,6 +311,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class FairyDance() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
+    /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.Static(StaticHoverTip.Block)];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("BlockGain", 5m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await PowerCmd.Apply<FairyDancePower>(ctx, Owner.Creature, IsUpgraded ? 8 : 5, Owner.Creature, this, false);
@@ -346,6 +368,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 // ---- 能力 ----
 
 [Pool(typeof(CasterCardPool))] public class StarBarrier() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Uncommon, TargetType.Self) {
+    /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.Static(StaticHoverTip.Block), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<StarBarrierPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
     protected override void OnUpgrade() { AddKeyword(CardKeyword.Innate); }
 }
@@ -357,17 +382,26 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class MirrorClanCovenant() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) {
+    /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CardKeyword.Exhaust)];
+
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<MirrorClanCovenantPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
     protected override void OnUpgrade() { AddKeyword(CardKeyword.Retain); }
 }
 
 [Pool(typeof(CasterCardPool))] public class CalamityConversion() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) {
+    /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 10m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<CalamityConversionPower>(ctx, Owner.Creature, IsUpgraded ? 15 : 10, Owner.Creature, this, false); }
     protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(5m); }
 }
 
 [Pool(typeof(CasterCardPool))] public class ExhaustRefinement() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) {
+    /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 5m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<ExhaustRefinementPower>(ctx, Owner.Creature, IsUpgraded ? 10 : 5, Owner.Creature, this, false); }
     protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(5m); }
@@ -380,6 +414,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class KeptStarThrob() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
+    /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<StrengthPower>()];
+
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("StrengthLoss", 9m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
@@ -391,11 +428,17 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class StarRendingThunder() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) {
+    /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<Dazed>()];
+
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<StarRendingThunderPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
     protected override void OnUpgrade() { AddKeyword(CardKeyword.Innate); }
 }
 
 [Pool(typeof(CasterCardPool))] public class LakeFairy() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) {
+    /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<VulnerablePower>(), HoverTipFactory.FromPower<WeakPower>(), HoverTipFactory.FromPower<FrailPower>()];
+
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<LakeFairyPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
     protected override void OnUpgrade() { EnergyCost.UpgradeBy(-1); }
 }

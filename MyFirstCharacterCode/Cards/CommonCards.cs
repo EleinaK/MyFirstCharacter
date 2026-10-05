@@ -8,12 +8,17 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.ValueProps;
 using MyFirstCharacter.MyFirstCharacterCode.FGOCore;
 using MyFirstCharacter.MyFirstCharacterCode.Powers;
+using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Models.Powers;
 
 namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 
 // ===== 普通卡（Phase 2 新增） =====
 
 [Pool(typeof(CasterCardPool))] public class FairyKnightTrial() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) {
+    /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<StrengthPower>()];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(2m, ValueProp.Move), new RepeatVar(2)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await PowerCmd.Apply<FairyKnightTrialStrengthPower>(ctx, Owner.Creature, 2, Owner.Creature, this, false);
@@ -35,6 +40,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class StarCharge() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Common, TargetType.Self) {
+    /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 10m), new DynamicVar("NextNp", 20m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await NpCharge.Gain(Owner.Creature, IsUpgraded ? 15 : 10);
@@ -44,6 +52,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class StarGuidance() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Common, TargetType.Self) {
+    /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 10m), new CardsVar(1)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await NpCharge.Gain(Owner.Creature, IsUpgraded ? 15 : 10);
@@ -65,6 +76,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class RepayAll() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Common, TargetType.Self) {
+    /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CardKeyword.Exhaust)];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new EnergyVar(2)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await PlayerCmd.GainEnergy(2, Owner);

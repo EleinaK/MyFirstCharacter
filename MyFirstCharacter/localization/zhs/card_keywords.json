@@ -1,3 +1,4 @@
 {
-  
+  "MYFIRSTCHARACTER-NPGAUGE.title": "宝具值",
+  "MYFIRSTCHARACTER-NPGAUGE.description": "上限为300点。进入下一场战斗时最多保留100点，开局有50点。当宝具值超出或等于100点时，往你手牌中加入一张宝具牌；打出宝具牌时消耗100点宝具值。那之后如果宝具值仍达到100点，往你手牌中加入一张宝具牌。"
 }
