@@ -14,7 +14,7 @@ using MyFirstCharacter.MyFirstCharacterCode.Cards;
 namespace MyFirstCharacter.MyFirstCharacterCode.Patches;
 
 /// <summary>
-/// 让白名单里的 29 张卡借用游戏「先古卡」的全卡面渲染：隐藏普通卡框 / 立绘 / 横幅，改用铺满
+/// 让白名单里的 34 张卡借用游戏「先古卡」的全卡面渲染：隐藏普通卡框 / 立绘 / 横幅，改用铺满
 /// 整卡的 AncientPortrait，再叠先古边框、文字底与火焰横幅。完全不碰 CardRarity —— 稀有度同时是
 /// 奖励池、起始卡组与升级规则的输入，改了会把卡从普通奖励池里摘掉。
 ///
@@ -39,13 +39,16 @@ public static class AncientCardLookPatch
         // 第二批 15 张。这份名单必须与 .tools/convert_cardart.py 的 FULL_IMAGE_IDS 保持一致：
         // 那边决定写出什么图，这边决定用不用先古外观，只改一边会出现半吊子状态。
         typeof(CalamityCombo), typeof(EntrustedFuture), typeof(ThroughSnowstorm),
-        typeof(FairyLullaby), typeof(FairyForm), typeof(StarFurnace),
+        typeof(FairyLullaby), typeof(FairyForm),
         typeof(StarRendingThunder), typeof(MirrorCopy), typeof(ParadiseFairy),
         typeof(AttackDefenseOne), typeof(GiveStars), typeof(CalamityIsEvil),
         typeof(UndegradedFairyEye), typeof(FairyDance), typeof(RingTheBell),
         // 第三批 5 张
         typeof(ChosenSword), typeof(HuntMark), typeof(DistantHope),
         typeof(StarGuidance), typeof(BloodCrown),
+        // 第四批 6 张
+        typeof(SalvationSword), typeof(DeparturePoem), typeof(FlowerGarden),
+        typeof(KeptStarThrob), typeof(MicroAnomaly), typeof(Reclaim),
     ];
 
     // 路径取自 CardModel.AncientBorderPath / AncientTextBgPath。这两个字符串必须与游戏逐字一致：
