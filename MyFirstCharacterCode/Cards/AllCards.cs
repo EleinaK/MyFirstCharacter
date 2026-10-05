@@ -109,7 +109,7 @@ public static class CasterCardHelpers
 // ===== STARTERS =====
 [Pool(typeof(CasterCardPool))] public class BlueCard() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy) {
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(3m, ValueProp.Move), new DynamicVar("Np", 15m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx); await NpCharge.Gain(Owner.Creature, IsUpgraded ? 20 : 15); }
@@ -145,7 +145,7 @@ public static class CasterCardHelpers
 }
 [Pool(typeof(CasterCardPool))] public class LakeProtectionA() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Basic, TargetType.Self) {
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 20m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await NpCharge.Gain(Owner.Creature, IsUpgraded ? 25 : 20); }
@@ -153,7 +153,7 @@ public static class CasterCardHelpers
 }
 [Pool(typeof(CasterCardPool))] public class ExcaliburForgeEX() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Token, TargetType.Self) {
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 50m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await NpCharge.Gain(Owner.Creature, IsUpgraded ? 60 : 50); }
@@ -161,7 +161,7 @@ public static class CasterCardHelpers
 }
 [Pool(typeof(CasterCardPool))] public class EternalFeast() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Ancient, TargetType.Self) {
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<CasterEternalFeastPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
     protected override void OnUpgrade() { AddKeyword(CardKeyword.Innate); }
@@ -182,7 +182,7 @@ public static class CasterCardHelpers
 }
 [Pool(typeof(CasterCardPool))] public class BasicMagicAttack() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Common, TargetType.AllEnemies) {
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(7m, ValueProp.Move), new DynamicVar("Np", 5m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
@@ -232,7 +232,7 @@ public static class CasterCardHelpers
 }
 [Pool(typeof(CasterCardPool))] public class BasicMagicDefense() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Common, TargetType.Self) {
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     public override bool GainsBlock => true;
     protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(8m, ValueProp.Move), new DynamicVar("Np", 10m)];
@@ -247,7 +247,7 @@ public static class CasterCardHelpers
 }
 [Pool(typeof(CasterCardPool))] public class SpringMemory() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
     /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<StrengthPower>(), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<StrengthPower>(), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 40m)];
@@ -268,7 +268,7 @@ public static class CasterCardHelpers
 }
 [Pool(typeof(CasterCardPool))] public class PoisonWine() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Common, TargetType.Self) {
     /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<Infection>(), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<Infection>(), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 25m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await NpCharge.Gain(Owner.Creature, IsUpgraded ? 30 : 25); var w = base.CombatState.CreateCard<Infection>(Owner); CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(w, PileType.Discard, Owner)); }

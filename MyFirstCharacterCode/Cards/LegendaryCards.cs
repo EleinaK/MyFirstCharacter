@@ -196,7 +196,7 @@ public static class GrowingBladeTracker
 [Pool(typeof(CasterCardPool))] public class CalamityTorrent() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Rare, TargetType.Self) {
     /// <summary>把衍生卡「CasterCalamity」的卡面挂到悬停提示上（同游戏原生的压缩→燃料）。
     /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>(), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>(), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 40m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
@@ -285,7 +285,7 @@ public static class GrowingBladeTracker
 
 [Pool(typeof(CasterCardPool))] public class BodyIsSword() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Rare, TargetType.Self) {
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 5m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<BodyIsSwordPower>(ctx, Owner.Creature, IsUpgraded ? 10 : 5, Owner.Creature, this, false); }
@@ -303,7 +303,7 @@ public static class GrowingBladeTracker
 
 [Pool(typeof(CasterCardPool))] public class StarBirthMoment() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Rare, TargetType.Self) {
     /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.Static(StaticHoverTip.Block), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.Static(StaticHoverTip.Block), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<CasterDeathRiskPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
     protected override void OnUpgrade() { AddKeyword(CardKeyword.Retain); }
@@ -320,7 +320,7 @@ public static class GrowingBladeTracker
 
 [Pool(typeof(CasterCardPool))] public class FairyEnd() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Rare, TargetType.Self) {
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<FairyEndPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
     protected override void OnUpgrade() { AddKeyword(CardKeyword.Innate); }

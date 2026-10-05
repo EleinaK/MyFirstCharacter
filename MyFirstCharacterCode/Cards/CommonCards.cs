@@ -41,7 +41,7 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 
 [Pool(typeof(CasterCardPool))] public class StarCharge() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Common, TargetType.Self) {
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 10m), new DynamicVar("NextNp", 20m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
@@ -53,7 +53,7 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 
 [Pool(typeof(CasterCardPool))] public class StarGuidance() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Common, TargetType.Self) {
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge)];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 10m), new CardsVar(1)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
