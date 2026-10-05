@@ -8,6 +8,7 @@ using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.Nodes.CommonUi;
+using MegaCrit.Sts2.Core.Nodes.Vfx;
 using MegaCrit.Sts2.Core.ValueProps;
 using MyFirstCharacter.MyFirstCharacterCode.FGOCore;
 using MyFirstCharacter.MyFirstCharacterCode.Powers;
@@ -56,9 +57,15 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 [Pool(typeof(CasterCardPool))] public class HolySwordFlash() : MyFirstCharacterCard(2, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(10m, ValueProp.Move)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
+        await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target)
+            .WithHitVfxNode(NBigSlashVfx.Create)
+            .WithHitVfxNode(NBigSlashImpactVfx.Create)
+            .Execute(ctx);
         if (play.Target.HasPower<VulnerablePower>())
-            await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
+            await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target)
+                .WithHitVfxNode(NBigSlashVfx.Create)
+                .WithHitVfxNode(NBigSlashImpactVfx.Create)
+                .Execute(ctx);
     }
     protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(3m); }
 }
@@ -66,7 +73,10 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 [Pool(typeof(CasterCardPool))] public class ChosenSword() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(12m, ValueProp.Move)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
+        await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target)
+            .WithHitVfxNode(NBigSlashVfx.Create)
+            .WithHitVfxNode(NBigSlashImpactVfx.Create)
+            .Execute(ctx);
         var top = PileType.Draw.GetPile(Owner).Cards.FirstOrDefault();
         if (top != null) await CardCmd.Exhaust(ctx, top);
     }
