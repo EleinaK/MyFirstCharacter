@@ -1,0 +1,35 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="SpriteFrames" path="res://MyFirstCharacter/character/artoria_frames_caster.tres" id="1_sf6oc"]
+[ext_resource type="Script" path="res://MyFirstCharacter/character/artoria_sprite.gd" id="2_kjsun"]
+
+[node name="ArtoriaVisuals" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="Visuals" type="Node2D" parent="."]
+unique_name_in_owner = true
+
+[node name="Sprite" type="AnimatedSprite2D" parent="Visuals"]
+position = Vector2(30.7, -135.5)
+scale = Vector2(0.4592, 0.4592)
+sprite_frames = ExtResource("1_sf6oc")
+animation = &"idle"
+autoplay = "idle"
+flip_h = true
+script = ExtResource("2_kjsun")
+
+[node name="Bounds" type="Control" parent="."]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = -130.0
+offset_top = -267.3
+offset_right = 130.0
+
+[node name="IntentPosition" type="Marker2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(0, -297.3)
+
+[node name="CenterPos" type="Marker2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(0, -131.2)

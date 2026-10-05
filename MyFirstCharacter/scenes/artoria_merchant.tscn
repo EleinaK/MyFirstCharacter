@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="SpriteFrames" path="res://MyFirstCharacter/character/artoria_frames_caster.tres" id="1_dcfuo"]
+[ext_resource type="Script" path="res://MyFirstCharacter/character/artoria_sprite.gd" id="2_kjsun"]
+
+[node name="ArtoriaMerchant" type="Node2D"]
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(14.5, -291.9)
+scale = Vector2(0.9717, 0.9717)
+sprite_frames = ExtResource("1_dcfuo")
+animation = &"idle"
+autoplay = "idle"
+flip_h = true
+script = ExtResource("2_kjsun")

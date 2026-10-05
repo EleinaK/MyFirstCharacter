@@ -1,0 +1,16 @@
+{
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.title": "阿尔托莉雅·卡斯特",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.titleObject": "阿尔托莉雅·卡斯特",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.description": "妖精们的救世主，来自星之内海的预言之子。",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.pronounSubject": "她",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.pronounObject": "她",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.possessiveAdjective": "她的",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.pronounPossessive": "她的",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.goldMonologue": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.eventDeathPrevention": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.aromaPrinciple": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.cardsModifierTitle": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.cardsModifierDescription": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.banter.alive.endTurnPing": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.banter.dead.endTurnPing": ""
+}

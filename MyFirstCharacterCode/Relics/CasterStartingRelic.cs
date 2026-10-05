@@ -1,0 +1,57 @@
+using BaseLib.Utils;
+using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Players;
+using MegaCrit.Sts2.Core.Entities.Relics;
+using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Powers;
+using MyFirstCharacter.MyFirstCharacterCode.Cards;
+using MyFirstCharacter.MyFirstCharacterCode.FGOCore;
+using MyFirstCharacter.MyFirstCharacterCode.Powers;
+
+namespace MyFirstCharacter.MyFirstCharacterCode.Relics;
+
+[Pool(typeof(CasterRelicPool))]
+public class CasterStartingRelic : MyFirstCharacterRelic
+{
+    public override RelicRarity Rarity => RelicRarity.Starter;
+    public override bool ShouldReceiveCombatHooks => true;
+
+    /// <summary>先古事件强化：替换为先古遗物「不再遥远的希望之星」。</summary>
+    public override RelicModel? GetUpgradeReplacement()
+    {
+        return ModelDb.Relic<AncientHopeStarRelic>();
+    }
+
+    public override async Task BeforeCombatStartLate()
+    {
+        await base.BeforeCombatStartLate();
+        var c = Owner.Creature;
+        NpCharge.ResetCombat(c);
+        // 初始形态改为「夏日之星」（形态二）
+        if (!c.HasPower<CasterFormOnePower>() && !c.HasPower<CasterFormTwoPower>())
+        {
+            await PowerCmd.Apply<CasterFormTwoPower>(new BlockingPlayerChoiceContext(), c, 1, c, null, false);
+            SpriteController.ApplyFrames(c, CasterFormTwoPower.FramesPath);
+            await PowerCmd.Apply<StrengthPower>(new BlockingPlayerChoiceContext(), c, 2, c, null, false);      // +2力量（永久）
+            await PowerCmd.Apply<VulnerablePower>(new BlockingPlayerChoiceContext(), c, 2, c, null, false);    // +2易伤（自身）
+            // 恢复上一场战斗继承的宝具值显示条，并检查是否已过阈值
+            await NpCharge.SyncDisplay(c);
+            await CasterCardHelpers.CheckNPThreshold(c);
+        }
+    }
+
+    /// <summary>记录「本回合消耗过牌」，供预言之子的旅途等卡判断。</summary>
+    public override async Task AfterCardExhausted(PlayerChoiceContext choiceContext, CardModel card, bool causedByEthereal)
+    {
+        if (card.Owner == Owner)
+            TurnTracker.MarkExhausted(Owner.Creature);
+    }
+
+    public override async Task AfterPlayerTurnStart(PlayerChoiceContext choiceContext, Player player)
+    {
+        if (player == Owner)
+            TurnTracker.ClearExhausted(Owner.Creature);
+    }
+}

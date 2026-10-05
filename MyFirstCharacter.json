@@ -1,0 +1,17 @@
+{
+  "id": "MyFirstCharacter",
+  "name": "Artoria Caster",
+  "author": "EleinaK",
+  "description": "Adds Artoria Caster (阿尔托莉雅·卡斯特) from Fate/Grand Order as a playable character.",
+  "version": "v0.0.0",
+  "min_game_version": "0.107.0",
+  "has_pck": true,
+  "has_dll": true,
+  "dependencies": [
+    {
+      "id": "BaseLib",
+      "min_version": "3.4.5"
+    }
+  ],
+  "affects_gameplay": true
+}

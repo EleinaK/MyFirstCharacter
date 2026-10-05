@@ -1,0 +1,16 @@
+{
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.title": "Artoria Caster",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.titleObject": "Artoria Caster",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.description": "The savior of the fairies, the prophesied child from the Inner Sea of the Star.",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.pronounSubject": "she",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.pronounObject": "her",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.possessiveAdjective": "her",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.pronounPossessive": "hers",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.goldMonologue": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.eventDeathPrevention": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.aromaPrinciple": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.cardsModifierTitle": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.cardsModifierDescription": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.banter.alive.endTurnPing": "",
+  "MYFIRSTCHARACTER-CASTER_CHARACTER.banter.dead.endTurnPing": ""
+}

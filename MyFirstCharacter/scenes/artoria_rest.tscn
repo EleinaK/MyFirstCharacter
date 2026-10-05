@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="SpriteFrames" path="res://MyFirstCharacter/character/artoria_frames_caster.tres" id="1_10ngt"]
+[ext_resource type="Script" path="res://MyFirstCharacter/character/artoria_sprite.gd" id="2_kjsun"]
+
+[node name="ArtoriaRestSite" type="Node2D"]
+
+[node name="ControlRoot" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="Hitbox" type="Control" parent="ControlRoot"]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = -137.0
+offset_top = -462.0
+offset_right = 137.0
+
+[node name="Sprite" type="AnimatedSprite2D" parent="."]
+position = Vector2(14.5, -291.9)
+scale = Vector2(0.9717, 0.9717)
+sprite_frames = ExtResource("1_10ngt")
+animation = &"idle"
+autoplay = "idle"
+flip_h = true
+script = ExtResource("2_kjsun")
