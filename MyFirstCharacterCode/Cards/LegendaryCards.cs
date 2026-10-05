@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 using MyFirstCharacter.MyFirstCharacterCode.FGOCore;
 using MyFirstCharacter.MyFirstCharacterCode.Powers;
+using MegaCrit.Sts2.Core.HoverTips;
 
 namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 
@@ -96,11 +97,11 @@ public static class GrowingBladeTracker
 
 [Pool(typeof(CasterCardPool))] public class SalvationSword() : MyFirstCharacterCard(10, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Retain];
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(35m, ValueProp.Move)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(45m, ValueProp.Move)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
     }
-    protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(12m); }
+    protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(15m); }
 }
 
 // ---- 技能 ----
@@ -109,11 +110,13 @@ public static class GrowingBladeTracker
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(5)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        int keep = IsUpgraded ? 8 : 5;
+        int keep = 5;
         var drawPile = PileType.Draw.GetPile(Owner);
         var all = drawPile.Cards.ToList();
         if (all.Count == 0) return;
-        var keepCards = await CardSelectCmd.FromCombatPile(ctx, drawPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, keep));
+        var keepCards = await CardSelectCmd.FromCombatPile(ctx, drawPile, Owner, IsUpgraded
+            ? new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, 0, keep)
+            : new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, keep));
         var keepSet = keepCards.ToHashSet();
         var unselected = all.Where(c => !keepSet.Contains(c)).ToList();
         int half = unselected.Count / 2;
@@ -121,10 +124,14 @@ public static class GrowingBladeTracker
         foreach (var c in unselected.OrderBy(c => rng.NextInt(int.MaxValue)).Take(half).ToList())
             await CardCmd.Exhaust(ctx, c);
     }
-    protected override void OnUpgrade() { DynamicVars.Cards.UpgradeValueBy(3m); }
+    protected override void OnUpgrade() { }
 }
 
 [Pool(typeof(CasterCardPool))] public class CalamityIsEvil() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Rare, TargetType.Self) {
+    /// <summary>把衍生卡「CasterCalamity」的卡面挂到悬停提示上（同游戏原生的压缩→燃料）。
+    /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>()];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new RepeatVar(1)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         int repeats = IsUpgraded ? 2 : 1;
@@ -181,6 +188,10 @@ public static class GrowingBladeTracker
 }
 
 [Pool(typeof(CasterCardPool))] public class CalamityTorrent() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Rare, TargetType.Self) {
+    /// <summary>把衍生卡「CasterCalamity」的卡面挂到悬停提示上（同游戏原生的压缩→燃料）。
+    /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>()];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 40m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await NpCharge.Gain(Owner.Creature, IsUpgraded ? 50 : 40);
@@ -258,12 +269,16 @@ public static class GrowingBladeTracker
 }
 
 [Pool(typeof(CasterCardPool))] public class BodyIsSword() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Rare, TargetType.Self) {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 10m)];
-    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<BodyIsSwordPower>(ctx, Owner.Creature, IsUpgraded ? 15 : 10, Owner.Creature, this, false); }
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 5m)];
+    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<BodyIsSwordPower>(ctx, Owner.Creature, IsUpgraded ? 10 : 5, Owner.Creature, this, false); }
     protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(5m); }
 }
 
 [Pool(typeof(CasterCardPool))] public class AloneSeeksStars() : MyFirstCharacterCard(3, CardType.Power, CardRarity.Rare, TargetType.Self) {
+    /// <summary>把衍生卡「Alone」的卡面挂到悬停提示上（同游戏原生的压缩→燃料）。
+    /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<Alone>()];
+
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<AloneSeeksStarsPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
     protected override void OnUpgrade() { EnergyCost.UpgradeBy(-1); }
 }
@@ -279,7 +294,7 @@ public static class GrowingBladeTracker
     protected override void OnUpgrade() { DynamicVars.Block.UpgradeValueBy(2m); }
 }
 
-[Pool(typeof(CasterCardPool))] public class FairyEnd() : MyFirstCharacterCard(3, CardType.Power, CardRarity.Rare, TargetType.Self) {
+[Pool(typeof(CasterCardPool))] public class FairyEnd() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Rare, TargetType.Self) {
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<FairyEndPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
     protected override void OnUpgrade() { AddKeyword(CardKeyword.Innate); }
 }

@@ -9,6 +9,7 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MyFirstCharacter.MyFirstCharacterCode.Cards;
 using MyFirstCharacter.MyFirstCharacterCode.FGOCore;
 using MyFirstCharacter.MyFirstCharacterCode.Powers;
+using MegaCrit.Sts2.Core.HoverTips;
 
 namespace MyFirstCharacter.MyFirstCharacterCode.Relics;
 
@@ -16,6 +17,10 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Relics;
 [Pool(typeof(CasterRelicPool))]
 public class AncientHopeStarRelic : MyFirstCharacterRelic
 {
+    /// <summary>把衍生卡「CradlingYourHopeStar」的卡面挂到悬停提示上（同游戏原生的压缩→燃料）。
+    /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CradlingYourHopeStar>()];
+
     public override RelicRarity Rarity => RelicRarity.Ancient;
     public override bool ShouldReceiveCombatHooks => true;
 
@@ -32,7 +37,7 @@ public class AncientHopeStarRelic : MyFirstCharacterRelic
     {
         await base.BeforeCombatStartLate();
         var c = Owner.Creature;
-        NpCharge.ResetCombat(c);
+        await NpCharge.BeginCombat(c);
         if (!c.HasPower<CasterFormOnePower>() && !c.HasPower<CasterFormTwoPower>())
         {
             await PowerCmd.Apply<CasterFormTwoPower>(new BlockingPlayerChoiceContext(), c, 1, c, null, false);

@@ -78,7 +78,7 @@
   "MYFIRSTCHARACTER-HUNT_MARK.title": "最后之龙的追猎",
   "MYFIRSTCHARACTER-HUNT_MARK.description": "造成5点伤害。那之后，本回合每对其造成一次伤害获得 {Np:diff()} 点宝具值。",
   "MYFIRSTCHARACTER-MIRROR_CLAN_SECRET_RITE.title": "某个预言",
-  "MYFIRSTCHARACTER-MIRROR_CLAN_SECRET_RITE.description": "选择你抽牌堆中三张牌消耗。",
+  "MYFIRSTCHARACTER-MIRROR_CLAN_SECRET_RITE.description": "选择你抽牌堆中最多三张牌消耗。",
   "MYFIRSTCHARACTER-BOOK_BURNING_RITE.title": "熊熊燃烧的不列颠",
   "MYFIRSTCHARACTER-BOOK_BURNING_RITE.description": "从消耗牌堆中选择 {Cards:diff()} 张牌加入手牌，那之后，选择抽牌堆中的 {Cards:diff()} 张牌消耗。",
   "MYFIRSTCHARACTER-MICRO_ANOMALY.title": "星之川",
@@ -136,7 +136,7 @@
   "MYFIRSTCHARACTER-SALVATION_SWORD.title": "崩落",
   "MYFIRSTCHARACTER-SALVATION_SWORD.description": "造成 {Damage:diff()} 点伤害。本场战斗每切换一次形态，此牌的费用减少2。",
   "MYFIRSTCHARACTER-FURNACE_FAIRY.title": "不断毁灭的救世之梦",
-  "MYFIRSTCHARACTER-FURNACE_FAIRY.description": "选择抽牌堆中 {Cards:diff()} 张牌，之后随机将未选中的牌的一半数目消耗。",
+  "MYFIRSTCHARACTER-FURNACE_FAIRY.description": "选择抽牌堆中{IfUpgraded:show:最多|} {Cards:diff()} 张牌，之后随机将未选中的牌的一半数目消耗。",
   "MYFIRSTCHARACTER-CALAMITY_IS_EVIL.title": "灾厄即妖精之恶",
   "MYFIRSTCHARACTER-CALAMITY_IS_EVIL.description": "消耗所有「灾厄」，并添加等量「灾厄」到你的弃牌堆。重复执行 {Repeat:diff()} 次。",
   "MYFIRSTCHARACTER-ENTRUSTED_FUTURE.title": "被托付的光辉未来",
@@ -170,5 +170,5 @@
   "MYFIRSTCHARACTER-GLOUCESTER_DAY11.title": "第十一天的格洛斯特",
   "MYFIRSTCHARACTER-GLOUCESTER_DAY11.description": "每当你给予敌人易伤时，获得 {Block:diff()} 点格挡。",
   "MYFIRSTCHARACTER-FAIRY_END.title": "不该得到救赎的世界",
-  "MYFIRSTCHARACTER-FAIRY_END.description": "每当你切换形态时，所有敌人失去你当前宝具值10%的生命。"
+  "MYFIRSTCHARACTER-FAIRY_END.description": "每当你切换形态时，所有敌人失去你当前宝具值20%的生命。"
 }

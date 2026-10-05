@@ -78,7 +78,7 @@
   "MYFIRSTCHARACTER-HUNT_MARK.title": "The Hunt of the Last Dragon",
   "MYFIRSTCHARACTER-HUNT_MARK.description": "Deal 5 damage. Gain {Np:diff()} NP each time you damage this enemy this turn.",
   "MYFIRSTCHARACTER-MIRROR_CLAN_SECRET_RITE.title": "A Certain Prophecy",
-  "MYFIRSTCHARACTER-MIRROR_CLAN_SECRET_RITE.description": "Exhaust 3 cards from your Draw pile.",
+  "MYFIRSTCHARACTER-MIRROR_CLAN_SECRET_RITE.description": "Exhaust up to 3 cards from your Draw pile.",
   "MYFIRSTCHARACTER-BOOK_BURNING_RITE.title": "Britannia Ablaze",
   "MYFIRSTCHARACTER-BOOK_BURNING_RITE.description": "Add {Cards:diff()} card from your Exhaust pile to your hand, then Exhaust {Cards:diff()} card from your Draw pile.",
   "MYFIRSTCHARACTER-MICRO_ANOMALY.title": "The River of Stars",
@@ -136,7 +136,7 @@
   "MYFIRSTCHARACTER-SALVATION_SWORD.title": "Collapse",
   "MYFIRSTCHARACTER-SALVATION_SWORD.description": "Deal {Damage:diff()} damage. For each time you switched forms this combat, this card costs 2 less.",
   "MYFIRSTCHARACTER-FURNACE_FAIRY.title": "The Ever-Destroyed Dream of Salvation",
-  "MYFIRSTCHARACTER-FURNACE_FAIRY.description": "Choose {Cards:diff()} cards from your Draw pile, then Exhaust half of the unselected cards at random.",
+  "MYFIRSTCHARACTER-FURNACE_FAIRY.description": "Choose {IfUpgraded:show:up to |}{Cards:diff()} cards from your Draw pile, then Exhaust half of the unselected cards at random.",
   "MYFIRSTCHARACTER-CALAMITY_IS_EVIL.title": "Calamity Is the Evil of Fairies",
   "MYFIRSTCHARACTER-CALAMITY_IS_EVIL.description": "Exhaust all Calamity. Repeat {Repeat:diff()} time.",
   "MYFIRSTCHARACTER-ENTRUSTED_FUTURE.title": "The Glorious Future Entrusted",
@@ -170,5 +170,5 @@
   "MYFIRSTCHARACTER-GLOUCESTER_DAY11.title": "Gloucester on the Eleventh Day",
   "MYFIRSTCHARACTER-GLOUCESTER_DAY11.description": "Whenever you apply Vulnerable to an enemy, gain {Block:diff()} Block.",
   "MYFIRSTCHARACTER-FAIRY_END.title": "The World That Should Not Be Saved",
-  "MYFIRSTCHARACTER-FAIRY_END.description": "Whenever you switch forms, all enemies lose 10% of your current NP as HP."
+  "MYFIRSTCHARACTER-FAIRY_END.description": "Whenever you switch forms, all enemies lose 20% of your current NP as HP."
 }

@@ -23,7 +23,7 @@ public partial class MainFile : Node
             + string.Join(", ", applied.Select(m => $"{m.DeclaringType?.Name}.{m.Name}")));
 
         // Subscribe to NP gauge filled event - auto-generates NP card when threshold crossed
-        FGOCore.NpCharge.GaugeFilled += Cards.CasterCardHelpers.CheckNPThreshold;
+        FGOCore.NpCharge.NpChanged += Cards.CasterCardHelpers.CheckNPThreshold;
     }
 
     /// <summary>

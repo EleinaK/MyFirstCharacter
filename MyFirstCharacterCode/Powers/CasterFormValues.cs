@@ -12,5 +12,5 @@ public static class CasterFormValues
 
     public static int FormTwoStrength(Creature c) => HasAncientRelic(c) ? 4 : 2;
 
-    public static int FormTwoVulnerable(Creature c) => HasAncientRelic(c) ? 1 : 2;
+    public static int FormTwoVulnerable(Creature c) => 1;   // 初始/先古都是 1 层易伤
 }

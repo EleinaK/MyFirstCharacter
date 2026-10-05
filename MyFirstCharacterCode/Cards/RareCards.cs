@@ -12,6 +12,7 @@ using MegaCrit.Sts2.Core.Nodes.Vfx;
 using MegaCrit.Sts2.Core.ValueProps;
 using MyFirstCharacter.MyFirstCharacterCode.FGOCore;
 using MyFirstCharacter.MyFirstCharacterCode.Powers;
+using MegaCrit.Sts2.Core.HoverTips;
 
 namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 
@@ -43,6 +44,10 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class AbsoluteLoneliness() : MyFirstCharacterCard(2, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
+    /// <summary>把衍生卡「Alone」的卡面挂到悬停提示上（同游戏原生的压缩→燃料）。
+    /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<Alone>()];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(13m, ValueProp.Move)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
@@ -112,6 +117,10 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class CalamityCombo() : MyFirstCharacterCard(0, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
+    /// <summary>把衍生卡「CasterCalamity」的卡面挂到悬停提示上（同游戏原生的压缩→燃料）。
+    /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>()];
+
     protected override bool HasEnergyCostX => true;
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(9m, ValueProp.Move)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
@@ -201,7 +210,7 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Ethereal, CardKeyword.Exhaust];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         var drawPile = PileType.Draw.GetPile(Owner);
-        var chosen = await CardSelectCmd.FromCombatPile(ctx, drawPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.ExhaustSelectionPrompt, 3));
+        var chosen = await CardSelectCmd.FromCombatPile(ctx, drawPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.ExhaustSelectionPrompt, 0, 3));
         foreach (var card in chosen)
             await CardCmd.Exhaust(ctx, card);
     }
@@ -225,6 +234,10 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class BloodCrown() : MyFirstCharacterCard(2, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
+    /// <summary>把衍生卡「Alone」的卡面挂到悬停提示上（同游戏原生的压缩→燃料）。
+    /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<Alone>()];
+
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         var hand = PileType.Hand.GetPile(Owner).Cards.Where(c => c != (CardModel)this).ToList();
@@ -262,6 +275,10 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class RainstormComing() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
+    /// <summary>把衍生卡「CasterCalamity」的卡面挂到悬停提示上（同游戏原生的压缩→燃料）。
+    /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>()];
+
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         var discardPile = PileType.Discard.GetPile(Owner);
@@ -356,10 +373,10 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
     protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(5m); }
 }
 
-[Pool(typeof(CasterCardPool))] public class FormFlow() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) {
+[Pool(typeof(CasterCardPool))] public class FormFlow() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Uncommon, TargetType.Self) {
     protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(1)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<FormFlowPower>(ctx, Owner.Creature, DynamicVars.Cards.IntValue, Owner.Creature, this, false); }
-    protected override void OnUpgrade() { DynamicVars.Cards.UpgradeValueBy(1m); }
+    protected override void OnUpgrade() { EnergyCost.UpgradeBy(-1); }
 }
 
 [Pool(typeof(CasterCardPool))] public class KeptStarThrob() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {

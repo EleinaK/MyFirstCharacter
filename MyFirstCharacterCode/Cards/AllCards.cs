@@ -15,6 +15,7 @@ using MegaCrit.Sts2.Core.Nodes.Rooms;
 using MegaCrit.Sts2.Core.Nodes.Vfx;
 using MyFirstCharacter.MyFirstCharacterCode.Powers;
 using MyFirstCharacter.MyFirstCharacterCode.FGOCore;
+using MegaCrit.Sts2.Core.HoverTips;
 
 namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 
@@ -75,7 +76,7 @@ public static class CasterCardHelpers
             card.EnergyCost.SetThisCombat(Math.Max(0, 10 - 2 * NpCharge.SwitchCount(c)));
         // 妖精的终末：切换形态时所有敌人失去10%宝具值生命（最少1）
         if (c.HasPower<FairyEndPower>()) {
-            int loss = Math.Max(1, (int)(NpCharge.Current(c) * 0.1m));
+            int loss = Math.Max(1, (int)(NpCharge.Current(c) * 0.2m));
             var enemies = c.CombatState?.Enemies.Where(e => e.IsAlive);
             if (enemies != null)
                 foreach (var e in enemies)
@@ -107,8 +108,8 @@ public static class CasterCardHelpers
 
 // ===== STARTERS =====
 [Pool(typeof(CasterCardPool))] public class BlueCard() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy) {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(3m, ValueProp.Move), new DynamicVar("Np", 10m)];
-    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx); await NpCharge.Gain(Owner.Creature, IsUpgraded ? 15 : 10); }
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(3m, ValueProp.Move), new DynamicVar("Np", 15m)];
+    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx); await NpCharge.Gain(Owner.Creature, IsUpgraded ? 20 : 15); }
     protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(5m); }
 }
 [Pool(typeof(CasterCardPool))] public class CasterStrike() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Basic, TargetType.AnyEnemy) {
@@ -140,9 +141,9 @@ public static class CasterCardHelpers
     protected override void OnUpgrade() { EnergyCost.UpgradeBy(-1); }
 }
 [Pool(typeof(CasterCardPool))] public class LakeProtectionA() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Basic, TargetType.Self) {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 15m)];
-    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await NpCharge.Gain(Owner.Creature, IsUpgraded ? 25 : 15); }
-    protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(10m); }
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 20m)];
+    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await NpCharge.Gain(Owner.Creature, IsUpgraded ? 25 : 20); }
+    protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(5m); }
 }
 [Pool(typeof(CasterCardPool))] public class ExcaliburForgeEX() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Token, TargetType.Self) {
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 50m)];
@@ -182,7 +183,7 @@ public static class CasterCardHelpers
     }
 }
 [Pool(typeof(CasterCardPool))] public class WilsonsGrove() : MyFirstCharacterCard(2, CardType.Attack, CardRarity.Common, TargetType.RandomEnemy) {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(2m, ValueProp.Move), new RepeatVar(5)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(3m, ValueProp.Move), new RepeatVar(4)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         var enemies = base.CombatState.Enemies.Where(e => e.IsAlive).ToList();
         var rng = Owner.PlayerRng;
@@ -191,7 +192,7 @@ public static class CasterCardHelpers
             await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(target).Execute(ctx);
         }
     }
-    protected override void OnUpgrade() { DynamicVars.Repeat.UpgradeValueBy(2m); }
+    protected override void OnUpgrade() { DynamicVars.Repeat.UpgradeValueBy(1m); }
 }
 [Pool(typeof(CasterCardPool))] public class RingTheBell() : MyFirstCharacterCard(2, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) {
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(11m, ValueProp.Move), new PowerVar<WeakPower>(1m)];
@@ -250,6 +251,10 @@ public static class CasterCardHelpers
     protected override void OnUpgrade() { DynamicVars.Energy.UpgradeValueBy(1m); }
 }
 [Pool(typeof(CasterCardPool))] public class ThroughSnowstorm() : MyFirstCharacterCard(0, CardType.Skill, CardRarity.Common, TargetType.Self) {
+    /// <summary>把衍生卡「CasterCalamity」的卡面挂到悬停提示上（同游戏原生的压缩→燃料）。
+    /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>()];
+
     protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(2)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await CardPileCmd.Draw(ctx, DynamicVars.Cards.BaseValue, Owner); var s = base.CombatState.CreateCard<CasterCalamity>(Owner); CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(s, PileType.Discard, Owner)); }
     protected override void OnUpgrade() { DynamicVars.Cards.UpgradeValueBy(1m); }
@@ -300,9 +305,8 @@ public static class CasterCardHelpers
         if (Owner.Creature.HasPower<CasterDoubleNpPower>())
             await DoNpEffect(ctx, play);
 
-        // 若宝具值仍过阈值，再生成一张
-        if (NpCharge.IsOvercharged(Owner.Creature))
-            await ManifestCards.ManifestToHand<CradlingYourHopeStar>(Owner.Creature);
+        // 打出后若宝具值仍 >=100，补卡由 NpCharge.NpChanged 统一处理
+        // （Spend(100) 会触发一次检查），这里不再手动生成，避免补两张。
     }
 
     private async Task DoNpEffect(PlayerChoiceContext ctx, CardPlay play)
