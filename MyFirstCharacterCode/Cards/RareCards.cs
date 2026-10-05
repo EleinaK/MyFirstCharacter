@@ -309,8 +309,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 }
 
 [Pool(typeof(CasterCardPool))] public class FormFlow() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) {
-    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<FormFlowPower>(ctx, Owner.Creature, IsUpgraded ? 2 : 1, Owner.Creature, this, false); }
-    protected override void OnUpgrade() { }
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(1)];
+    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<FormFlowPower>(ctx, Owner.Creature, DynamicVars.Cards.IntValue, Owner.Creature, this, false); }
+    protected override void OnUpgrade() { DynamicVars.Cards.UpgradeValueBy(1m); }
 }
 
 [Pool(typeof(CasterCardPool))] public class KeptStarThrob() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
