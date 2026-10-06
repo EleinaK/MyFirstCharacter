@@ -17,6 +17,12 @@ public partial class MainFile : Node
 
     public static void Initialize()
     {
+        // 必须在 ModelDb.InitIds 之前跑（mod initializer 阶段 VeryEarly，早于 ExecuteEssential 里的 InitIds），
+        // 因为 BaseLib 的 SavedSpireFieldPatch 是在 InitIds 的 prefix 里做排序注入的。
+        FGOCore.NpFields.EnsureRegistered();
+        Logger.Info("[NP] SavedSpireField 已注册: "
+            + string.Join(", ", FGOCore.NpFields.RegisteredNames()));
+
         Harmony harmony = new(ModId);
         List<MethodInfo> applied = PatchAssembly(harmony, typeof(MainFile).Assembly);
         Logger.Info($"[ACL] 补丁已挂 {applied.Count} 个方法: "
@@ -55,7 +61,12 @@ public partial class MainFile : Node
 
             try
             {
-                applied.AddRange(harmony.CreateClassProcessor(type).Patch());
+                List<MethodInfo> patched = harmony.CreateClassProcessor(type).Patch();
+                // 有标注却挂 0 个，是另一个静默失效的坑（Harmony 这时既不抛也不报）——
+                // 之前排查「补丁根本没生效」花了几小时，就在这一类无声失败上。
+                if (patched.Count == 0)
+                    Logger.Warn($"[ACL] 补丁类 {type.FullName} 有标注但一个都没挂上（静默失效）");
+                applied.AddRange(patched);
             }
             catch (Exception ex)
             {

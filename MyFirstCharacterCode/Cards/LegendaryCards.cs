@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
 using MyFirstCharacter.MyFirstCharacterCode.FGOCore;
 using MyFirstCharacter.MyFirstCharacterCode.Powers;
+using MyFirstCharacter.MyFirstCharacterCode.Relics;
 using MegaCrit.Sts2.Core.HoverTips;
 
 namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
@@ -85,12 +86,31 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
     protected override void OnUpgrade() { DynamicVars.Repeat.UpgradeValueBy(2m); }
 }
 
-/// <summary>妖精圆桌领域：本局伤害永久成长（按玩家持久，跨战斗继承，随新一局重置）。</summary>
+/// <summary>妖精圆桌领域：本局伤害永久成长（按玩家持久，跨战斗继承，随新一局重置）。
+/// 真实存储挂在载体遗物上（见 FGOCore/NpFields），所以它也会随存档和多人权威快照一起走；
+/// 玩家身上找不到载体遗物时退化成本地字典。</summary>
 public static class GrowingBladeTracker
 {
-    private static readonly Dictionary<Player, int> _bonus = new();
-    public static int Bonus(Player player) => _bonus.GetValueOrDefault(player, 0);
-    public static void Increment(Player player, int amount) => _bonus[player] = Bonus(player) + amount;
+    private static readonly Dictionary<Player, int> _fb = new();
+
+    public static int Bonus(Player player)
+    {
+        MyFirstCharacterRelic? relic = NpRelic.Carrier(player);
+        if (relic != null)
+        {
+            int fromRelic = NpFields.GrowingBladeBonus[relic];
+            if (fromRelic != NpFields.Unset) return fromRelic;
+        }
+        return _fb.GetValueOrDefault(player, 0);
+    }
+
+    public static void Increment(Player player, int amount)
+    {
+        int next = Bonus(player) + amount;
+        _fb[player] = next;
+        MyFirstCharacterRelic? relic = NpRelic.Carrier(player);
+        if (relic != null) NpFields.GrowingBladeBonus[relic] = next;
+    }
 }
 
 [Pool(typeof(CasterCardPool))] public class GrowingBlade() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) {
