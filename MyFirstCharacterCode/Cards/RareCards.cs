@@ -276,7 +276,10 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
         int weak = IsUpgraded ? 2 : 1;
-        foreach (var e in CombatState.Enemies) await PowerCmd.Apply<WeakPower>(ctx, e, weak, Owner.Creature, this, false);
+        // CombatState.Enemies 是**未过滤存活**的整个敌方列表；不过滤会往已经死掉的敌人身上挂虚弱。
+        // 同类的星之悸动、威尔士森林都写了 .Where(e => e.IsAlive)。
+        foreach (var e in CombatState.Enemies.Where(e => e.IsAlive))
+            await PowerCmd.Apply<WeakPower>(ctx, e, weak, Owner.Creature, this, false);
     }
     protected override void OnUpgrade() { DynamicVars.Block.UpgradeValueBy(2m); DynamicVars.Weak.UpgradeValueBy(1m); }
 }

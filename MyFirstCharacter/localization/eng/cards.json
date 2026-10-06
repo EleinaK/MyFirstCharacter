@@ -146,7 +146,7 @@
   "MYFIRSTCHARACTER-GIVE_STARS.title": "Give People Stars, Give Stars Dreams",
   "MYFIRSTCHARACTER-GIVE_STARS.description": "Shuffle all your unexhausted cards into your Draw pile, then draw cards equal to the size of your [gold][gold]Exhaust[/gold] pile[/gold].{IfUpgraded:show: Gain 1 [gold]Solace Defense[/gold].|}",
   "MYFIRSTCHARACTER-CALAMITY_TORRENT.title": "The Curse of Calamity",
-  "MYFIRSTCHARACTER-CALAMITY_TORRENT.description": "[gold]Exhaust[/gold]. Gain {Np:diff()} [gold]NP[/gold]. Fill your hand with [gold]Calamity[/gold].",
+  "MYFIRSTCHARACTER-CALAMITY_TORRENT.description": "Gain {Np:diff()} [gold]NP[/gold]. Fill your hand with [gold]Calamity[/gold].",
   "MYFIRSTCHARACTER-DISTANT_HOPE.title": "The Last Dragon in My Heart",
   "MYFIRSTCHARACTER-DISTANT_HOPE.description": "Choose a card from your [gold][gold]Exhaust[/gold] pile[/gold] and add it to your hand. It costs 1 less this turn.",
   "MYFIRSTCHARACTER-DEPARTURE_POEM.title": "Seen in the River Dracae",

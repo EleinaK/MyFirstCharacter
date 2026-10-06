@@ -79,9 +79,12 @@ public static class CasterCardHelpers
         // 镜之氏族的毁灭：本回合费用降至0
         foreach (var card in PileType.Hand.GetPile(c.Player).Cards.Where(card => card is MirrorClanDestruction))
             card.EnergyCost.SetThisTurnOrUntilPlayed(0);
-        // 救世之剑：每切换一次形态费用-2（本场战斗）
-        foreach (var card in PileType.Hand.GetPile(c.Player).Cards.Where(card => card is SalvationSword))
-            card.EnergyCost.SetThisCombat(Math.Max(0, 10 - 2 * NpCharge.SwitchCount(c)));
+        // 崩落：每切换一次形态费用-2（本场战斗）。
+        // 必须扫**所有**牌堆 —— 原来只扫手牌，于是「在抽牌堆里时切换过形态、之后才抽到」的崩落
+        // 费用不降（抽到后仍是 10），而卡面规则说该降。SetThisCombat 记在卡牌模型上，抽到后依然有效。
+        foreach (var pileType in new[] { PileType.Hand, PileType.Draw, PileType.Discard })
+            foreach (var card in pileType.GetPile(c.Player).Cards.Where(card => card is SalvationSword))
+                card.EnergyCost.SetThisCombat(Math.Max(0, 10 - 2 * NpCharge.SwitchCount(c)));
         // 妖精的终末：切换形态时所有敌人失去当前宝具值的一定比例生命（每层 20%，最少 1）
         var fairyEnd = c.GetPower<FairyEndPower>();
         if (fairyEnd != null) {

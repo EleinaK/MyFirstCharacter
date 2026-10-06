@@ -205,6 +205,9 @@ public static class GrowingBladeTracker
 }
 
 [Pool(typeof(CasterCardPool))] public class GiveStars() : MyFirstCharacterCard(2, CardType.Skill, CardRarity.Rare, TargetType.Self) {
+    /// <summary>升级文案里提到「对肃正防御」，按本仓库约定描述里提到的关键词都要在这里给提示。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<CasterInvinciblePower>()];
+
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         var toMove = new List<CardModel>();
