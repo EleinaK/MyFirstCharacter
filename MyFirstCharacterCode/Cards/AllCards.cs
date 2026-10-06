@@ -56,17 +56,25 @@ public static class CasterCardHelpers
     public static async Task AfterSwitchForm(PlayerChoiceContext ctx, Creature c)
     {
         if (c.Player == null) return;
-        // 花之庭园：切换到圣剑使形态时 +1 能量
-        if (c.HasPower<CasterFormOnePower>() && c.HasPower<FlowerGardenPower>())
-            await PlayerCmd.GainEnergy(1, c.Player);
-        // 形态流转：切换形态时抽牌
+        // 花之庭园：切换到圣剑使形态时获得能量（每层 1 点）
+        var flowerGarden = c.GetPower<FlowerGardenPower>();
+        if (c.HasPower<CasterFormOnePower>() && flowerGarden != null)
+            await PlayerCmd.GainEnergy((int)flowerGarden.Amount, c.Player);
+        // 形态流转：切换形态时抽牌（每层 1 张）
         var formFlow = c.GetPower<FormFlowPower>();
         if (formFlow != null)
             await CardPileCmd.Draw(ctx, (int)formFlow.Amount, c.Player);
-        // 湖中仙女：切换形态时移除自身一种负面效果
-        if (c.HasPower<LakeFairyPower>()) {
-            var debuff = c.Powers.FirstOrDefault(p => p is WeakPower or VulnerablePower or FrailPower);
-            if (debuff != null) await PowerCmd.Remove(debuff);
+        // 湖中仙女：切换形态时**随机**移除自身身上存在的一种负面效果（每层移除 1 种）。
+        // 注意是随机取，不是按固定顺序取第一个 —— 原来写的是 FirstOrDefault(p => 虚弱/易伤/脆弱)，
+        // 永远是先移除虚弱。
+        var lakeFairy = c.GetPower<LakeFairyPower>();
+        if (lakeFairy != null && c.Player != null) {
+            var rng = c.Player.RunState.Rng.CombatCardSelection;
+            for (int i = 0; i < (int)lakeFairy.Amount; i++) {
+                var debuffs = c.Powers.Where(p => p is WeakPower or VulnerablePower or FrailPower).ToList();
+                if (debuffs.Count == 0) break;
+                await PowerCmd.Remove(debuffs[rng.NextInt(debuffs.Count)]);
+            }
         }
         // 镜之氏族的毁灭：本回合费用降至0
         foreach (var card in PileType.Hand.GetPile(c.Player).Cards.Where(card => card is MirrorClanDestruction))
@@ -74,9 +82,10 @@ public static class CasterCardHelpers
         // 救世之剑：每切换一次形态费用-2（本场战斗）
         foreach (var card in PileType.Hand.GetPile(c.Player).Cards.Where(card => card is SalvationSword))
             card.EnergyCost.SetThisCombat(Math.Max(0, 10 - 2 * NpCharge.SwitchCount(c)));
-        // 妖精的终末：切换形态时所有敌人失去10%宝具值生命（最少1）
-        if (c.HasPower<FairyEndPower>()) {
-            int loss = Math.Max(1, (int)(NpCharge.Current(c) * 0.2m));
+        // 妖精的终末：切换形态时所有敌人失去当前宝具值的一定比例生命（每层 20%，最少 1）
+        var fairyEnd = c.GetPower<FairyEndPower>();
+        if (fairyEnd != null) {
+            int loss = Math.Max(1, (int)(NpCharge.Current(c) * 0.2m * fairyEnd.Amount));
             var enemies = c.CombatState?.Enemies.Where(e => e.IsAlive);
             if (enemies != null)
                 foreach (var e in enemies)
@@ -239,8 +248,8 @@ public static class CasterCardHelpers
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
         int npPerHit = IsUpgraded ? 15 : 10;
-        if (Owner.Creature.HasPower<CasterMagicDefensePower>())
-            await PowerCmd.Remove(Owner.Creature.GetPower<CasterMagicDefensePower>()!);
+        // 不要「先移除再施加」—— 那会让第二张把第一张的效果顶掉。
+        // CasterMagicDefensePower 现在是 Counter，叠加才对：打两张 = 本回合每次受到攻击得 2N。
         await PowerCmd.Apply<CasterMagicDefensePower>(ctx, Owner.Creature, npPerHit, Owner.Creature, this, false);
     }
     protected override void OnUpgrade() { DynamicVars.Block.UpgradeValueBy(2m); DynamicVars["Np"].UpgradeValueBy(5m); }
@@ -338,14 +347,17 @@ public static class CasterCardHelpers
         await NpCharge.Spend(Owner.Creature, 100);
         NpCharge.IncrementNpCardsPlayed(Owner.Creature);
 
-        // 不散之宴席：打出宝具卡时额外获得30点宝具值
-        if (Owner.Creature.HasPower<CasterEternalFeastPower>())
-            await NpCharge.Gain(Owner.Creature, 30);
+        // 不散之宴席：打出宝具卡时额外获得宝具值（每层 30 点）
+        var feast = Owner.Creature.GetPower<CasterEternalFeastPower>();
+        if (feast != null)
+            await NpCharge.Gain(Owner.Creature, 30 * (int)feast.Amount);
 
         await DoNpEffect(ctx, play);
-        // 予你的春之回忆：宝具卡的效果额外触发一次（第二次不消耗宝具值）
-        if (Owner.Creature.HasPower<CasterDoubleNpPower>())
-            await DoNpEffect(ctx, play);
+        // 予你的春之回忆：宝具卡的效果额外触发（每层多一次；第二次起都不再消耗宝具值）
+        var doubleNp = Owner.Creature.GetPower<CasterDoubleNpPower>();
+        if (doubleNp != null)
+            for (int i = 0; i < (int)doubleNp.Amount; i++)
+                await DoNpEffect(ctx, play);
 
         // 打出后若宝具值仍 >=100，补卡由 NpCharge.NpChanged 统一处理
         // （Spend(100) 会触发一次检查），这里不再手动生成，避免补两张。

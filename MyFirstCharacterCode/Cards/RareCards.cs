@@ -328,17 +328,30 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
         var hand = PileType.Hand.GetPile(Owner).Cards.Where(c => c != (CardModel)this).ToList();
         if (hand.Count < 2) return;
-        var targetSel = await CardSelectCmd.FromHand(ctx, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, 1), c => c != (CardModel)this, this);
-        var target = targetSel.FirstOrDefault();
-        if (target == null) return;
-        var sourceSel = await CardSelectCmd.FromHand(ctx, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, 1), c => c != (CardModel)this && c != target, this);
-        var source = sourceSel.FirstOrDefault();
-        if (source == null) return;
-        // 同 DeparturePoem：要用 CreateClone() 造一张全新的牌当替换体，不能把还留在手牌里的
-        // source 本身传进去（ClonePreservingMutability 在规范实例上返回的就是 source 自己）。
-        // 对照游戏自身的 TransformTo<T>()，它也是用 CardScope 新建一张再交给 Transform。
-        var copy = source.CreateClone();
-        await CardCmd.Transform(target, copy, CardPreviewStyle.None);
+        // 一次选 2 张，按点击顺序：第 1 张 = 被变化的，第 2 张 = 复制来源。
+        //
+        // 原来这里连着调了两次 CardSelectCmd.FromHand。全 mod 只有这张卡这么做 ——
+        // 原生 GUARDS 和我们的「吾乃撕裂星辰之雷霆」都只选一次，实测也只有这张卡会出现
+        // 两张透明卡（节点被挂错父节点、回合结束清手牌时 Godot 报 already has a parent）。
+        // 先把两次选择合并成一次，消掉这个差异。
+        var chosen = (await CardSelectCmd.FromHand(ctx, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, 2, 2), c => c != (CardModel)this, this)).ToList();
+        if (chosen.Count < 2) return;
+        var target = chosen[0];
+        var source = chosen[1];
+
+        // 用 CombatState.CreateCard(规范实例, Owner) **新建**一张替换体。
+        // 游戏原生所有变形效果（Guards / Compact ...）都是这个写法，也是唯一能让手牌正确
+        // 刷新的路径（走 canonical.ToMutable() + AddCard + AfterCreated）。
+        //
+        // 原来这里用的是 source.CreateClone()，症状是**被选中的两张牌都变成空白卡**。
+        // CreateClone() 的定位是「往牌堆里塞一张复制品」（见 DeparturePoem / FairyAfterimage，
+        // 它们配 AddGeneratedCardToCombat 用，那是对的），拿它当变形替换体会让手牌渲染不出来。
+        // 也不能把 source 本身传进去：Transform 会把它从手牌移走，而它还在玩家刚选完的列表里。
+        var combat = CombatState;
+        if (combat == null) return;
+        CardModel replacement = combat.CreateCard(source.CanonicalInstance, Owner);
+        if (source.IsUpgraded) CardCmd.Upgrade(replacement);
+        await CardCmd.Transform(target, replacement);
     }
     protected override void OnUpgrade() { DynamicVars.Block.UpgradeValueBy(4m); }
 }

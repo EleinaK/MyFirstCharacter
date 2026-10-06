@@ -13,7 +13,7 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Powers;
 public class CasterMagicDefensePower : MyFirstCharacterPower
 {
     public override PowerType Type => PowerType.Buff;
-    public override PowerStackType StackType => PowerStackType.Single;
+    public override PowerStackType StackType => PowerStackType.Counter;
     public override bool ShouldReceiveCombatHooks => true;
 
     public override async Task AfterDamageReceived(
