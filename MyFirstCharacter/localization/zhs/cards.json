@@ -150,7 +150,7 @@
   "MYFIRSTCHARACTER-DISTANT_HOPE.title": "最后之龙在吾心中",
   "MYFIRSTCHARACTER-DISTANT_HOPE.description": "从[gold][gold]消耗[/gold]牌堆[/gold]中选择一张牌加入手牌，其本回合费用-1。",
   "MYFIRSTCHARACTER-DEPARTURE_POEM.title": "德拉凯之河中所见",
-  "MYFIRSTCHARACTER-DEPARTURE_POEM.description": "选择手牌中的一张牌，将该牌的复制品加入抽牌堆顶。",
+  "MYFIRSTCHARACTER-DEPARTURE_POEM.description": "选择手牌中的一张牌，将该牌{IfUpgraded:show:及其复制品|的复制品}加入抽牌堆顶。",
   "MYFIRSTCHARACTER-GIFTED_SPRING_MEMORY.title": "予你的春之回忆",
   "MYFIRSTCHARACTER-GIFTED_SPRING_MEMORY.description": "宝具卡的效果会额外触发一次。",
   "MYFIRSTCHARACTER-PARADISE_FAIRY.title": "妖精，自乐园而来",

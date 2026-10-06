@@ -150,7 +150,7 @@
   "MYFIRSTCHARACTER-DISTANT_HOPE.title": "The Last Dragon in My Heart",
   "MYFIRSTCHARACTER-DISTANT_HOPE.description": "Choose a card from your [gold][gold]Exhaust[/gold] pile[/gold] and add it to your hand. It costs 1 less this turn.",
   "MYFIRSTCHARACTER-DEPARTURE_POEM.title": "Seen in the River Dracae",
-  "MYFIRSTCHARACTER-DEPARTURE_POEM.description": "Choose a card in your hand and add a copy of it to the top of your Draw pile.",
+  "MYFIRSTCHARACTER-DEPARTURE_POEM.description": "Choose a card in your hand and add {IfUpgraded:show:it and a copy of it|a copy of it} to the top of your Draw pile.",
   "MYFIRSTCHARACTER-GIFTED_SPRING_MEMORY.title": "A Spring Memory For You",
   "MYFIRSTCHARACTER-GIFTED_SPRING_MEMORY.description": "Noble Phantasm cards trigger their effect once more.",
   "MYFIRSTCHARACTER-PARADISE_FAIRY.title": "The Fairy From Paradise",

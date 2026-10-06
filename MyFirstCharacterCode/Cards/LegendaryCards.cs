@@ -55,11 +55,13 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
         var hand = PileType.Hand.GetPile(Owner).Cards.Where(c => c != (CardModel)this).ToList();
         int count = hand.Count;
         foreach (var c in hand) await CardCmd.Exhaust(ctx, c);
-        int dmg = IsUpgraded ? 7 : 5;
+        // 读声明的变量而不是硬编码 7/5：写死的话 DynamicVars.Damage 从来没有升级过，
+        // 卡面的 {Damage:diff()} 两个状态都渲染成 5 —— 升级后实打 7 点、卡面却仍显示 5。
+        int dmg = (int)DynamicVars.Damage.BaseValue;
         for (int i = 0; i < count; i++)
             await DamageCmd.Attack((decimal)dmg).FromCard(this).TargetingAllOpponents(CombatState).Execute(ctx);
     }
-    protected override void OnUpgrade() { }
+    protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(2m); }
 }
 
 [Pool(typeof(CasterCardPool))] public class OrkneyRain() : MyFirstCharacterCard(2, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) {
