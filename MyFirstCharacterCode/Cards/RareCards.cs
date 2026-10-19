@@ -33,18 +33,19 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(9m, ValueProp.Move), new DynamicVar("NpThreshold", 50m), new DynamicVar("Enhanced", 14m)];
+    // Enhanced 是「强化后的伤害」的绝对值，必须真的读它 —— 原来 OnPlay 写的是 dmg + 5，
+    // 只因为 Damage 和 Enhanced 恰好都 +3 才凑巧对上；一改数值立刻就分家了。
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(9m, ValueProp.Move), new DynamicVar("NpThreshold", 50m), new DynamicVar("Enhanced", 18m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        int threshold = IsUpgraded ? 40 : 50;
-        int dmg = (int)DynamicVars.Damage.BaseValue;
+        int threshold = (int)DynamicVars["NpThreshold"].BaseValue;
         if (NpCharge.Current(Owner.Creature) >= threshold) {
-            await DamageCmd.Attack((decimal)(dmg + 5)).FromCard(this).Targeting(play.Target).Execute(ctx);
+            await DamageCmd.Attack(DynamicVars["Enhanced"].BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
             await CardCmd.Exhaust(ctx, this);
         } else {
-            await DamageCmd.Attack((decimal)dmg).FromCard(this).Targeting(play.Target).Execute(ctx);
+            await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
         }
     }
-    protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(3m); DynamicVars["NpThreshold"].UpgradeValueBy(-10m); DynamicVars["Enhanced"].UpgradeValueBy(3m); }
+    protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(3m); DynamicVars["NpThreshold"].UpgradeValueBy(-10m); DynamicVars["Enhanced"].UpgradeValueBy(4m); }
 }
 
 [Pool(typeof(CasterCardPool))] public class AbsoluteLoneliness() : MyFirstCharacterCard(2, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
@@ -95,18 +96,18 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
     protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(4m); }
 }
 
-[Pool(typeof(CasterCardPool))] public class ProphecyLight() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(5m, ValueProp.Move), new DynamicVar("Look", 3m)];
+[Pool(typeof(CasterCardPool))] public class ProphecyLight() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(5m, ValueProp.Move), new DynamicVar("Look", 3m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
-        int look = IsUpgraded ? 5 : 3;
+        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
+        int look = (int)DynamicVars["Look"].BaseValue;
         var top = PileType.Draw.GetPile(Owner).Cards.Take(look).ToList();
         if (top.Count == 0) return;
         var chosen = await CardSelectCmd.FromSimpleGrid(ctx, top, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, 1));
         foreach (var card in chosen)
             await CardPileCmd.Add(card, PileType.Hand, CardPilePosition.Bottom);
     }
-    protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(2m); DynamicVars["Look"].UpgradeValueBy(2m); }
+    protected override void OnUpgrade() { DynamicVars.Block.UpgradeValueBy(2m); DynamicVars["Look"].UpgradeValueBy(2m); }
 }
 
 [Pool(typeof(CasterCardPool))] public class HolySwordJudgment() : MyFirstCharacterCard(3, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy) {
@@ -236,17 +237,21 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 [Pool(typeof(CasterCardPool))] public class BookBurningRite() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
     protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(1)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        int count = IsUpgraded ? 2 : 1;
-        var exhaustPile = PileType.Exhaust.GetPile(Owner);
-        var toHand = await CardSelectCmd.FromCombatPile(ctx, exhaustPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, count));
-        foreach (var card in toHand)
-            await CardPileCmd.Add(card, PileType.Hand, CardPilePosition.Bottom);
-        var drawPile = PileType.Draw.GetPile(Owner);
-        var toExhaust = await CardSelectCmd.FromCombatPile(ctx, drawPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.ExhaustSelectionPrompt, count));
-        foreach (var card in toExhaust)
-            await CardCmd.Exhaust(ctx, card);
+        int count = DynamicVars.Cards.IntValue;
+        int repeats = IsUpgraded ? 2 : 1;      // 升级只多跑一轮，张数不变
+        for (int r = 0; r < repeats; r++) {
+            // 每轮必须重新取牌堆快照：上一轮已经搬走 count 张、并往消耗堆塞了 count 张
+            var exhaustPile = PileType.Exhaust.GetPile(Owner);
+            var toHand = await CardSelectCmd.FromCombatPile(ctx, exhaustPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, count));
+            foreach (var card in toHand)
+                await CardPileCmd.Add(card, PileType.Hand, CardPilePosition.Bottom);
+            var drawPile = PileType.Draw.GetPile(Owner);
+            var toExhaust = await CardSelectCmd.FromCombatPile(ctx, drawPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.ExhaustSelectionPrompt, count));
+            foreach (var card in toExhaust)
+                await CardCmd.Exhaust(ctx, card);
+        }
     }
-    protected override void OnUpgrade() { DynamicVars.Cards.UpgradeValueBy(1m); }
+    // 张数不随升级变化，升级只多执行一次 —— 别再写 Cards.UpgradeValueBy，否则卡面数字与实装不符
 }
 
 [Pool(typeof(CasterCardPool))] public class BloodCrown() : MyFirstCharacterCard(2, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
@@ -284,14 +289,21 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
     protected override void OnUpgrade() { DynamicVars.Block.UpgradeValueBy(2m); DynamicVars.Weak.UpgradeValueBy(1m); }
 }
 
-[Pool(typeof(CasterCardPool))] public class Reclaim() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(2)];
+[Pool(typeof(CasterCardPool))] public class Reclaim() : MyFirstCharacterCard(0, CardType.Skill, CardRarity.Uncommon, TargetType.Self) {
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(1)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        int count = IsUpgraded ? 3 : 2;
+        int count = DynamicVars.Cards.IntValue;
         var exhaustPile = PileType.Exhaust.GetPile(Owner);
-        var chosen = await CardSelectCmd.FromCombatPile(ctx, exhaustPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, count));
+        var chosen = (await CardSelectCmd.FromCombatPile(ctx, exhaustPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, count))).ToList();
+        // 先快照「剩下的」再搬牌：搬完再读 exhaustPile 就分不清哪些是新进来的了
+        var remaining = exhaustPile.Cards.Where(c => !chosen.Contains(c)).ToList();
         foreach (var card in chosen)
             await CardPileCmd.Add(card, PileType.Discard, CardPilePosition.Bottom);
+        if (remaining.Count > 0) {
+            var rng = Owner.RunState.Rng.CombatCardSelection;   // 与 SwitchForm 里取随机负面效果同一路 RNG
+            var pick = remaining[rng.NextInt(remaining.Count)];
+            await CardPileCmd.Add(pick, PileType.Discard, CardPilePosition.Bottom);
+        }
     }
     protected override void OnUpgrade() { DynamicVars.Cards.UpgradeValueBy(1m); }
 }
@@ -383,7 +395,7 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 
 // ---- 能力 ----
 
-[Pool(typeof(CasterCardPool))] public class StarBarrier() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Uncommon, TargetType.Self) {
+[Pool(typeof(CasterCardPool))] public class StarBarrier() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Uncommon, TargetType.Self) {
     /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.Static(StaticHoverTip.Block), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 

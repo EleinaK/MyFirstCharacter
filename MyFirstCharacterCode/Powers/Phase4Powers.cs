@@ -66,6 +66,13 @@ public class AloneSeeksStarsPower : MyFirstCharacterPower
     public override PowerStackType StackType => PowerStackType.Counter;
     public override bool ShouldReceiveCombatHooks => true;
 
+    /// <summary>
+    /// 来源卡是升级版时，生成的「独自一人」也带升级。
+    /// 普通字段而非 SpireField：PowerModel.ToMutable() 走 MemberwiseClone，字段会被带过去；
+    /// 但存档/联机快照不序列化它 —— 战斗中读档会退回未升级版，这是可接受的降级。
+    /// </summary>
+    public bool UpgradedAlone;
+
     public override async Task AfterPlayerTurnStart(PlayerChoiceContext choiceContext, Player player)
     {
         if (player != Owner.Player) return;
@@ -74,6 +81,7 @@ public class AloneSeeksStarsPower : MyFirstCharacterPower
         for (int i = 0; i < times; i++)
         {
             var alone = Owner.CombatState.CreateCard<MyFirstCharacter.MyFirstCharacterCode.Cards.Alone>(player);
+            if (UpgradedAlone) CardCmd.Upgrade(alone);
             await CardPileCmd.AddGeneratedCardToCombat(alone, PileType.Hand, player);
         }
     }

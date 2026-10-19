@@ -10,6 +10,9 @@ namespace MyFirstCharacter.MyFirstCharacterCode;
 /// </summary>
 public static class SpriteController
 {
+    /// <summary>战斗模型缩放倍率。原版遗物「大蘑菇」用的是 1.5f，观感过大；这里两个形态统一取 1.4f。</summary>
+    public const float CombatScale = 1.4f;
+
     // Track which sprites already have our signal handler connected
     private static readonly HashSet<AnimatedSprite2D> _connectedSprites = new();
 
@@ -20,6 +23,13 @@ public static class SpriteController
 
         var creatureNode = combatRoom.GetCreatureNode(creature);
         if (creatureNode == null) return;
+
+        // 缩放整个 creature node —— 用引擎自带的 NCreature.ScaleTo（原版「大蘑菇」遗物同款 API），
+        // 不要直接改 Sprite.Scale：ScaleTo 会同步 _tempScale，而 UpdateBounds 是按
+        // Bounds.Size * Visuals.Scale / _tempScale 反推逻辑尺寸的，两者不同步会让
+        // 命中框和敌人意图图标跟身体错位。
+        // creature node 每场战斗重建，所以每次应用帧时重新施加一次（大蘑菇也是每进房间重调 Grow()）。
+        creatureNode.ScaleTo(CombatScale, 0.0);
 
         // Try to find the AnimatedSprite2D
         AnimatedSprite2D? sprite = null;

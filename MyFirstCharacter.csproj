@@ -33,7 +33,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Alchyr.Sts2.BaseLib" Version="*" PrivateAssets="All" />
+        <!-- 钉死版本，不要用 "*"：csproj 的 UpdateDependencyVersions 目标会把 MyFirstCharacter.json 的
+             min_version 强制写成 NuGet 解析到的版本，而 "*" 会在每次 restore 时拉到最新 —— 一旦新版
+             BaseLib 发布，本地构建就会把清单刷到游戏里装不出来的版本，模组直接拒绝加载。
+             要与游戏 mods/BaseLib/BaseLib.json 里的 version 保持一致。 -->
+        <PackageReference Include="Alchyr.Sts2.BaseLib" Version="3.4.5" PrivateAssets="All" />
         <PackageReference Include="Krafs.Publicizer" Version="2.3.0" PrivateAssets="All" />
         <PackageReference Include="Alchyr.Sts2.ModAnalyzers" Version="*" />
         <!-- Generates a .pck file when building if only using simple assets. May not work on all setups. Uncomment to test. -->

@@ -85,10 +85,11 @@ public static class CasterCardHelpers
         foreach (var pileType in new[] { PileType.Hand, PileType.Draw, PileType.Discard })
             foreach (var card in pileType.GetPile(c.Player).Cards.Where(card => card is SalvationSword))
                 card.EnergyCost.SetThisCombat(Math.Max(0, 10 - 2 * NpCharge.SwitchCount(c)));
-        // 妖精的终末：切换形态时所有敌人失去当前宝具值的一定比例生命（每层 20%，最少 1）
+        // 妖精的终末：切换形态时所有敌人失去当前宝具值的一定比例生命。
+        // FairyEndPower.Amount 现在存的是「百分比」本身（基础 15 / 升级 20，叠两张 = 35%），不再是层数。
         var fairyEnd = c.GetPower<FairyEndPower>();
         if (fairyEnd != null) {
-            int loss = Math.Max(1, (int)(NpCharge.Current(c) * 0.2m * fairyEnd.Amount));
+            int loss = Math.Max(1, (int)(NpCharge.Current(c) * fairyEnd.Amount / 100m));
             var enemies = c.CombatState?.Enemies.Where(e => e.IsAlive);
             if (enemies != null)
                 foreach (var e in enemies)
@@ -196,18 +197,18 @@ public static class CasterCardHelpers
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(7m, ValueProp.Move), new DynamicVar("Np", 5m)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(7m, ValueProp.Move), new DynamicVar("Np", 10m)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).TargetingAllOpponents(base.CombatState).Execute(ctx);
-        int npPer = IsUpgraded ? 10 : 5;
-        await NpCharge.Gain(Owner.Creature,npPer * base.CombatState.Enemies.Count);
+        await NpCharge.Gain(Owner.Creature, (int)DynamicVars["Np"].BaseValue * base.CombatState.Enemies.Count);
     }
     protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(2m); DynamicVars["Np"].UpgradeValueBy(5m); }
 }
-[Pool(typeof(CasterCardPool))] public class FlowerMageWand() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Common, TargetType.AnyEnemy) {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(5m, ValueProp.Move)];
+[Pool(typeof(CasterCardPool))] public class FlowerMageWand() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Common, TargetType.Self) {
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Retain];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(5m, ValueProp.Move)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
+        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.Block, play);
         if (IsUpgraded) { foreach (var c in PileType.Hand.GetPile(Owner).Cards.Where(c => c.IsUpgradable)) CardCmd.Upgrade(c); }
         else { var c = await CardSelectCmd.FromHandForUpgrade(ctx, Owner, this); if (c != null) CardCmd.Upgrade(c); }
     }
@@ -263,8 +264,8 @@ public static class CasterCardHelpers
 
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 40m)];
-    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await NpCharge.Gain(Owner.Creature, IsUpgraded ? 60 : 40); await PowerCmd.Apply<StrengthPower>(ctx, Owner.Creature, -2, Owner.Creature, this, false); }
-    protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(20m); }
+    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await NpCharge.Gain(Owner.Creature, (int)DynamicVars["Np"].BaseValue); await PowerCmd.Apply<StrengthPower>(ctx, Owner.Creature, -2, Owner.Creature, this, false); }
+    protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(10m); }
 }
 [Pool(typeof(CasterCardPool))] public class FairyEye() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Common, TargetType.AnyEnemy) {
     /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
@@ -336,7 +337,7 @@ public static class CasterCardHelpers
     /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<VulnerablePower>(), HoverTipFactory.FromPower<WeakPower>(), HoverTipFactory.FromPower<FrailPower>()];
 
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(2), new EnergyVar(2), new DynamicVar("AoeMult", 2m), new DynamicVar("StMult", 3m)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(1), new EnergyVar(2), new DynamicVar("AoeMult", 1m), new DynamicVar("StMult", 2m)];
 
     /// <summary>
     /// 宝具卡，不该被随机生成出来：它 0 费，正好符合「大奖」(Jackpot) 挑 0 费牌的过滤条件，
@@ -391,15 +392,14 @@ public static class CasterCardHelpers
         // 获得一层对肃正防御（下一次受到的伤害变为0，可叠加）
         await PowerCmd.Apply<CasterInvinciblePower>(ctx, Owner.Creature, 1, Owner.Creature, this, false);
 
-        // 抽牌 + 回能
-        int draw = IsUpgraded ? 3 : 2;
-        await CardPileCmd.Draw(ctx, draw, Owner);
-        await PlayerCmd.GainEnergy(IsUpgraded ? 3 : 2, Owner);
+        // 抽牌 + 回能（全部读 CanonicalVars 的声明，别再写 IsUpgraded ? x : y —— 卡面数字会跟实装分家）
+        await CardPileCmd.Draw(ctx, DynamicVars.Cards.BaseValue, Owner);
+        await PlayerCmd.GainEnergy((int)DynamicVars.Energy.BaseValue, Owner);
 
         // 伤害结算：全体 + 单体（1 + 消耗堆数量 × 倍率）
         int exhaustCount = (int)PileType.Exhaust.GetPile(Owner).Cards.Count();
-        int aoeMult = IsUpgraded ? 3 : 2;
-        int stMult = IsUpgraded ? 4 : 3;
+        int aoeMult = (int)DynamicVars["AoeMult"].BaseValue;
+        int stMult = (int)DynamicVars["StMult"].BaseValue;
         int aoeDmg = 1 + exhaustCount * aoeMult;
         int stDmg = 1 + exhaustCount * stMult;
 

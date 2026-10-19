@@ -55,24 +55,26 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 10m), new CardsVar(1)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("Np", 10m), new CardsVar(2)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        await NpCharge.Gain(Owner.Creature, IsUpgraded ? 15 : 10);
-        await CardPileCmd.Draw(ctx, IsUpgraded ? 2 : 1, Owner);
+        await NpCharge.Gain(Owner.Creature, (int)DynamicVars["Np"].BaseValue);
+        await CardPileCmd.Draw(ctx, DynamicVars.Cards.BaseValue, Owner);
     }
     protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(5m); DynamicVars.Cards.UpgradeValueBy(1m); }
 }
 
-[Pool(typeof(CasterCardPool))] public class FairyLullaby() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Common, TargetType.Self) {
+/// <summary>存在，意义和名字：自带「消耗」，升级后去掉「消耗」（张数不变）。</summary>
+[Pool(typeof(CasterCardPool))] public class FairyLullaby() : MyFirstCharacterCard(0, CardType.Skill, CardRarity.Common, TargetType.Self) {
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(1)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        int count = IsUpgraded ? 2 : 1;
         var exhaustPile = PileType.Exhaust.GetPile(Owner);
-        var chosen = await CardSelectCmd.FromCombatPile(ctx, exhaustPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, count));
+        var chosen = await CardSelectCmd.FromCombatPile(ctx, exhaustPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, DynamicVars.Cards.IntValue));
         foreach (var card in chosen)
             await CardPileCmd.Add(card, PileType.Hand, CardPilePosition.Bottom);
     }
-    protected override void OnUpgrade() { DynamicVars.Cards.UpgradeValueBy(1m); }
+    // 张数不随升级变化，升级只去掉「消耗」—— 别再写 Cards.UpgradeValueBy，否则卡面数字与实装不符
+    protected override void OnUpgrade() { RemoveKeyword(CardKeyword.Exhaust); }
 }
 
 [Pool(typeof(CasterCardPool))] public class RepayAll() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Common, TargetType.Self) {

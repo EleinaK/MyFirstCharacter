@@ -410,9 +410,6 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("82_dfcmn")
-}, {
-"duration": 1.0,
 "texture": ExtResource("83_pqv7d")
 }, {
 "duration": 1.0,
@@ -428,16 +425,13 @@ animations = [{
 "texture": ExtResource("87_fix3o")
 }, {
 "duration": 1.0,
-"texture": ExtResource("88_cjbwx")
+"texture": ExtResource("86_mnu21")
 }, {
 "duration": 1.0,
-"texture": ExtResource("89_4bltl")
+"texture": ExtResource("85_delpd")
 }, {
 "duration": 1.0,
-"texture": ExtResource("90_axvce")
-}, {
-"duration": 1.0,
-"texture": ExtResource("91_gcbb1")
+"texture": ExtResource("84_gf7bt")
 }],
 "loop": true,
 "name": &"idle",

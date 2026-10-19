@@ -2,9 +2,12 @@ using BaseLib.Utils;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using MegaCrit.Sts2.Core.Logging;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Models.Powers;
 using MegaCrit.Sts2.Core.ValueProps;
@@ -34,24 +37,44 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
 
 [Pool(typeof(CasterCardPool))] public class BladeDraw() : MyFirstCharacterCard(2, CardType.Attack, CardRarity.Rare, TargetType.Self) {
     /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<StrengthPower>()];
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<StrengthPower>(), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        var attacks = PileType.Hand.GetPile(Owner).Cards.Where(c => c.Type == CardType.Attack && c != (CardModel)this).ToList();
+        var attacks = PileType.Hand.GetPile(Owner).Cards
+            .Where(c => c.Type == CardType.Attack && c != (CardModel)this).ToList();
+
+        // 只做**一遍**判定：按原生「痛殴」(Thrash) 的三选一级联取牌面伤害，再过一次 Hook.ModifyDamage
+        // （dealer 传自己 → 吃玩家当前力量；target 传 null → 敌人易伤不计入，与 Thrash 完全一致）。
+        // 这个结果同时就是本回合施加的临时力量**和**宝具值本身。
+        // 顺序必须是「先算完 → 再施加力量 → 最后给宝具值」：先算后加，本卡刚给的力量不会回流进自己的 total。
         int total = 0;
         foreach (var a in attacks) {
-            try { total += (int)a.DynamicVars.Damage.BaseValue; } catch { }
-            await CardCmd.Exhaust(ctx, a);
+            decimal damage;
+            if (a.DynamicVars.ContainsKey("CalculatedDamage")) damage = a.DynamicVars.CalculatedDamage.Calculate(null);
+            else if (a.DynamicVars.ContainsKey("Damage"))      damage = a.DynamicVars.Damage.BaseValue;
+            else if (a.DynamicVars.ContainsKey("OstyDamage"))  damage = a.DynamicVars.OstyDamage.BaseValue;
+            else { damage = 0m; Log.Warn(Id.Entry + " 手牌攻击牌 " + a.Id.Entry + " 没有可用的伤害变量，按 0 计"); }
+            damage = Hook.ModifyDamage(Owner.RunState, Owner.Creature.CombatState, null, Owner.Creature, damage,
+                                       ValueProp.Move, a, ModifyDamageHookType.All, CardPreviewMode.None, out IEnumerable<AbstractModel> _);
+            total += (int)damage;
         }
+
         if (total > 0)
             await PowerCmd.Apply<BladeDrawStrengthPower>(ctx, Owner.Creature, total, Owner.Creature, this, false);
+        foreach (var a in attacks)
+            await CardCmd.Exhaust(ctx, a);
+        // 宝具值 = **施加临时力量之后**身上的力量总值（原有的 + 本卡给的），升级后 ×3。
+        // 不是「本卡给的那一份」—— 例如原有力量 2、本卡给 96，则应获得 98。
+        int strAfter = Owner.Creature.GetPowerAmount<StrengthPower>();
+        await NpCharge.Gain(Owner.Creature, strAfter * (IsUpgraded ? 3 : 1));
     }
-    protected override void OnUpgrade() { EnergyCost.UpgradeBy(-1); }
+    // 升级不再减费（费用保持 2），只提高宝具值倍率 —— 倍率写在 OnPlay 里，卡面用 {IfUpgraded} 表达
+    protected override void OnUpgrade() { }
 }
 
-[Pool(typeof(CasterCardPool))] public class ForgiveOurSins() : MyFirstCharacterCard(2, CardType.Attack, CardRarity.Rare, TargetType.AllEnemies) {
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(5m, ValueProp.Move)];
+[Pool(typeof(CasterCardPool))] public class ForgiveOurSins() : MyFirstCharacterCard(1, CardType.Attack, CardRarity.Rare, TargetType.AllEnemies) {
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(3m, ValueProp.Move)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         var hand = PileType.Hand.GetPile(Owner).Cards.Where(c => c != (CardModel)this).ToList();
         int count = hand.Count;
@@ -76,14 +99,20 @@ namespace MyFirstCharacter.MyFirstCharacterCode.Cards;
     protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(4m); DynamicVars["Mult"].UpgradeValueBy(1m); }
 }
 
-[Pool(typeof(CasterCardPool))] public class RingSixBells() : MyFirstCharacterCard(4, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) {
+[Pool(typeof(CasterCardPool))] public class RingSixBells() : MyFirstCharacterCard(3, CardType.Attack, CardRarity.Rare, TargetType.AnyEnemy) {
+    /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
+
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(7m, ValueProp.Move), new RepeatVar(6)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DamageVar(4m, ValueProp.Move), new RepeatVar(6)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
+        // 「失去当前所有宝具值」= 归零。Spend 的判定是 cur < amount 才失败，传 amount == cur 必然通过。
+        // 归零后 NpChanged → CheckNPThreshold 因 IsOvercharged(0)=false 不会补宝具卡。
+        await NpCharge.Spend(Owner.Creature, NpCharge.Current(Owner.Creature));
         for (int i = 0; i < DynamicVars.Repeat.BaseValue; i++)
             await DamageCmd.Attack(DynamicVars.Damage.BaseValue).FromCard(this).Targeting(play.Target).Execute(ctx);
     }
-    protected override void OnUpgrade() { DynamicVars.Repeat.UpgradeValueBy(2m); }
+    protected override void OnUpgrade() { DynamicVars.Damage.UpgradeValueBy(1m); DynamicVars.Repeat.UpgradeValueBy(1m); }
 }
 
 /// <summary>妖精圆桌领域：本局伤害永久成长（按玩家持久，跨战斗继承，随新一局重置）。
@@ -160,7 +189,32 @@ public static class GrowingBladeTracker
     /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>()];
 
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("AddCalamity", 2m)];
+    /// <summary>手牌 / 抽牌堆 / 弃牌堆 / **消耗牌堆** 四处「灾厄」的总数。
+    /// 消耗牌堆要算进去：被消耗的灾厄本体进消耗牌堆，同时 AfterCardExhausted 往弃牌堆塞一份复制品，
+    /// 所以两处各有一份 —— 只数前三堆会少算一半。</summary>
+    private static decimal CountCalamity(CardModel card) {
+        Player? owner = card.Owner;
+        if (owner == null) return 0m;      // 图鉴/规范实例上 Owner 可能为空
+        int n = 0;
+        foreach (var pileType in new[] { PileType.Hand, PileType.Draw, PileType.Discard, PileType.Exhaust })
+            n += pileType.GetPile(owner).Cards.Count(c => c is CasterCalamity);
+        return n;
+    }
+
+    // 走原生 Stack 同款的 CalculatedBlockVar：CustomCardModel.GainsBlock 按「DynamicVars 里有没有
+    // BlockVar/CalculatedBlockVar」自动推导，于是卡框和「格挡」悬停提示都自动来。
+    // CalculatedVar.Calculate() = CalculationBase + CalculationExtra × multiplier()，
+    // 所以 base=0 + extra=1 时算出来就是 multiplier 本身。
+    // ⚠ CalculationBase/CalculationExtra **两个都必须声明**：SetOwner→UpdateValues 与 Calculate 都会查
+    // 这两个键的索引器，缺了直接抛 KeyNotFoundException —— 而 SetOwner 在卡牌网格构建期就会跑，
+    // 会让抽牌堆/卡组界面整个空白（本仓库出过这个事故）。
+    protected override IEnumerable<DynamicVar> CanonicalVars => [
+        new DynamicVar("AddCalamity", 2m),
+        new CalculationBaseVar(0m),
+        new CalculationExtraVar(1m),
+        new CalculatedBlockVar(ValueProp.Move).WithMultiplier((CardModel card, Creature? _) => CountCalamity(card)),
+    ];
+
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         if (CombatState == null) return;          // 后续要 CreateCard，先挡掉空引用
         int repeats = IsUpgraded ? 2 : 1;
@@ -174,20 +228,28 @@ public static class GrowingBladeTracker
                 calamities.AddRange(pile.GetPile(Owner).Cards.Where(c => c is CasterCalamity).ToList());
             foreach (var c in calamities) await CardCmd.Exhaust(ctx, c);
         }
+        // 「那之后」= 全部重复结算完之后再数一次。每张被消耗的灾厄都已由 AfterCardExhausted
+        // 往弃牌堆塞了一张复制品，所以计数与文案「手牌，抽牌堆，弃牌堆中灾厄的总数量」自洽。
+        await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.CalculatedBlock.Calculate(play.Target),
+                                    DynamicVars.CalculatedBlock.Props, play);
     }
-    // 升级只把描述里的「那之后，再执行一次。」加上；执行次数由 IsUpgraded 决定（1 -> 2），无需 DynamicVar
+    // 升级只多执行一次（重复次数由 IsUpgraded 决定），无需 DynamicVar
     protected override void OnUpgrade() { }
 }
 
 [Pool(typeof(CasterCardPool))] public class EntrustedFuture() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Rare, TargetType.Self) {
     public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Exhaust];
-    protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(2)];
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new CardsVar(1)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
-        int count = IsUpgraded ? 3 : 2;
+        int count = DynamicVars.Cards.IntValue;
         var exhaustPile = PileType.Exhaust.GetPile(Owner);
         var chosen = await CardSelectCmd.FromCombatPile(ctx, exhaustPile, Owner, new CardSelectorPrefs(CardSelectorPrefs.TransformSelectionPrompt, count));
-        foreach (var card in chosen)
+        foreach (var card in chosen) {
             await CardPileCmd.Add(card, PileType.Hand, CardPilePosition.Bottom);
+            // 原生的一站式「本回合免费打出」：同时把能量费和星费都清零。
+            // 必须在进手牌**之后**调 —— 它内部走 AssertMutable，只对战斗内的可变实例有效（同 DistantHope 的顺序）。
+            card.SetToFreeThisTurn();
+        }
     }
     protected override void OnUpgrade() { DynamicVars.Cards.UpgradeValueBy(1m); }
 }
@@ -197,7 +259,7 @@ public static class GrowingBladeTracker
     protected override IEnumerable<DynamicVar> CanonicalVars => [new RepeatVar(1)];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         int x = ResolveEnergyXValue();
-        int times = x * DynamicVars.Repeat.IntValue;   // 倍数 = 1 / 升级 2，读的与卡面同一份声明
+        int times = (x + 1) * DynamicVars.Repeat.IntValue;   // 基础 X+1、升级 2X+2，读的与卡面同一份声明
         for (int i = 0; i < times; i++)
             await CasterCardHelpers.SwitchForm(ctx, this);
     }
@@ -241,7 +303,7 @@ public static class GrowingBladeTracker
             CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(cal, PileType.Hand, Owner));
         }
     }
-    protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(20m); }   // 50 -> 70
+    protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(10m); }   // 50 -> 60
 }
 
 [Pool(typeof(CasterCardPool))] public class DistantHope() : MyFirstCharacterCard(1, CardType.Skill, CardRarity.Rare, TargetType.Self) {
@@ -308,7 +370,7 @@ public static class GrowingBladeTracker
     protected override void OnUpgrade() { EnergyCost.UpgradeBy(-1); }
 }
 
-[Pool(typeof(CasterCardPool))] public class OnceSeenFinalStar() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Rare, TargetType.Self) {
+[Pool(typeof(CasterCardPool))] public class OnceSeenFinalStar() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Rare, TargetType.Self) {
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
         await CardPileCmd.Draw(ctx, 2, Owner);
         await PowerCmd.Apply<OnceSeenFinalStarPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false);
@@ -325,36 +387,50 @@ public static class GrowingBladeTracker
     protected override void OnUpgrade() { DynamicVars["Np"].UpgradeValueBy(5m); }
 }
 
-[Pool(typeof(CasterCardPool))] public class AloneSeeksStars() : MyFirstCharacterCard(3, CardType.Power, CardRarity.Rare, TargetType.Self) {
-    /// <summary>把衍生卡「Alone」的卡面挂到悬停提示上（同游戏原生的压缩→燃料）。
-    /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
-    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<Alone>()];
+[Pool(typeof(CasterCardPool))] public class AloneSeeksStars() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Rare, TargetType.Self) {
+    /// <summary>升级后生成的是「独自一人+」，所以卡面提示也要按升级态取。</summary>
+    protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<Alone>(IsUpgraded)];
 
-    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<AloneSeeksStarsPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
-    protected override void OnUpgrade() { EnergyCost.UpgradeBy(-1); }
+    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
+        // Apply 在已有同名能力时返回的是**叠加后的同一个实例**，所以这里写的是
+        // 「只要有一张是升级版，那一层加的「独自一人」之后都按升级版生成」。
+        var power = await PowerCmd.Apply<AloneSeeksStarsPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false);
+        if (IsUpgraded && power != null) power.UpgradedAlone = true;
+    }
+    // 升级**不再减费**（费用保持 2），升级只体现为「生成的是独自一人+」—— 所以这里什么都不做
+    protected override void OnUpgrade() { }
 }
 
 [Pool(typeof(CasterCardPool))] public class StarBirthMoment() : MyFirstCharacterCard(1, CardType.Power, CardRarity.Rare, TargetType.Self) {
     /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.Static(StaticHoverTip.Block), HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
+    // 基础带「虚无」，升级后换成「保留」（清单里的关键字前缀已证实：基础行「虚无。」、升级行「保留。」）
+    public override IEnumerable<CardKeyword> CanonicalKeywords => [CardKeyword.Ethereal];
     protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<CasterDeathRiskPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
-    protected override void OnUpgrade() { AddKeyword(CardKeyword.Retain); }
+    protected override void OnUpgrade() { RemoveKeyword(CardKeyword.Ethereal); AddKeyword(CardKeyword.Retain); }
 }
 
-[Pool(typeof(CasterCardPool))] public class GloucesterDay11() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Rare, TargetType.Self) {
+[Pool(typeof(CasterCardPool))] public class GloucesterDay11() : MyFirstCharacterCard(3, CardType.Power, CardRarity.Rare, TargetType.Self) {
     /// <summary>描述里提到的关键词/状态牌，挂上悬停提示（标黄由描述里的 [gold] 负责，提示必须在这里给）。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromPower<VulnerablePower>(), HoverTipFactory.Static(StaticHoverTip.Block)];
 
     protected override IEnumerable<DynamicVar> CanonicalVars => [new BlockVar(4m, ValueProp.Move)];
-    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<GloucesterDay11Power>(ctx, Owner.Creature, IsUpgraded ? 6 : 4, Owner.Creature, this, false); }
-    protected override void OnUpgrade() { DynamicVars.Block.UpgradeValueBy(2m); }
+    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<GloucesterDay11Power>(ctx, Owner.Creature, (int)DynamicVars.Block.BaseValue, Owner.Creature, this, false); }
+    protected override void OnUpgrade() { DynamicVars.Block.UpgradeValueBy(1m); }
 }
 
 [Pool(typeof(CasterCardPool))] public class FairyEnd() : MyFirstCharacterCard(2, CardType.Power, CardRarity.Rare, TargetType.Self) {
     /// <summary>宝具值：自定义关键字，提示文本在 card_keywords.json。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromKeyword(CasterKeywords.NpGauge), .. HoverTipFactory.FromCardWithCardHoverTips<CradlingYourHopeStar>()];
 
-    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) { await PowerCmd.Apply<FairyEndPower>(ctx, Owner.Creature, 1, Owner.Creature, this, false); }
-    protected override void OnUpgrade() { AddKeyword(CardKeyword.Innate); }
+    // 描述里引用 {NpPercent:diff()}，必须在 CanonicalVars 声明，否则卡面渲染失败（SmartFormat 抛错）
+    protected override IEnumerable<DynamicVar> CanonicalVars => [new DynamicVar("NpPercent", 15m)];
+    protected override async Task OnPlay(PlayerChoiceContext ctx, CardPlay play) {
+        // 「每层百分比」直接当 Amount 存：基础 15、升级 20，叠两张 = 35%。
+        // CasterCardHelpers.AfterSwitchForm 里读的就是这个 Amount，无需给 FairyEndPower 加字段。
+        await PowerCmd.Apply<FairyEndPower>(ctx, Owner.Creature, IsUpgraded ? 20 : 15, Owner.Creature, this, false);
+    }
+    // 升级 +5%，且**不再**给「固有」（目标文案的升级行没有「固有。」）
+    protected override void OnUpgrade() { DynamicVars["NpPercent"].UpgradeValueBy(5m); }
 }
