@@ -101,31 +101,42 @@ public class OnceSeenFinalStarPower : MyFirstCharacterPower
     }
 }
 
-/// <summary>第11天的格洛斯特：每给予敌人易伤时获得格挡。</summary>
+/// <summary>第11天的格洛斯特：每当你给予敌人易伤时获得格挡。</summary>
 public class GloucesterDay11Power : MyFirstCharacterPower
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
     public override bool ShouldReceiveCombatHooks => true;
 
-    public override async Task AfterModifyingPowerAmountGiven(PowerModel power)
+    // 不能用 AfterModifyingPowerAmountGiven：那个钩子只派发给「本次实际修改了层数的 modifier」
+    // （Hook.ModifyPowerAmountGiven 的 out modifiers 列表），本能力不改任何层数 →
+    // 永远不会被调用（旧实现的 bug：夏日之星形态每张牌自动给敌人挂易伤时，格挡完全不触发）。
+    // AfterPowerAmountChanged 才是「任何能力层数变化后通知所有 hook 监听者」的通用钩子。
+    public override async Task AfterPowerAmountChanged(PlayerChoiceContext choiceContext, PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)
     {
-        if (power is VulnerablePower && power.Owner != null && power.Owner != Owner)
-            await CreatureCmd.GainBlock(Owner, Amount, ValueProp.Unpowered, null);
+        if (amount <= 0) return;                                                        // 只处理施加/叠层，忽略回合末衰减
+        if (power is not VulnerablePower || power.Owner == null || power.Owner == Owner) return;  // 只认敌人身上的易伤
+        bool givenByOwner = applier == Owner || (applier == null && cardSource?.Owner?.Creature == Owner);
+        if (!givenByOwner) return;                                                      // 只认「你给予的」，敌方互相挂易伤不触发
+        await CreatureCmd.GainBlock(Owner, Amount, ValueProp.Unpowered, null);
     }
 }
 
-/// <summary>妖精形态：每给予敌人易伤时获得力量（每层1点）。</summary>
+/// <summary>妖精形态：每当你给予敌人易伤时获得力量（每层1点）。</summary>
 public class FairyFormPower : MyFirstCharacterPower
 {
     public override PowerType Type => PowerType.Buff;
     public override PowerStackType StackType => PowerStackType.Counter;
     public override bool ShouldReceiveCombatHooks => true;
 
-    public override async Task AfterModifyingPowerAmountGiven(PowerModel power)
+    // 同 GloucesterDay11Power：旧实现用 AfterModifyingPowerAmountGiven，永远不会触发。
+    public override async Task AfterPowerAmountChanged(PlayerChoiceContext choiceContext, PowerModel power, decimal amount, Creature? applier, CardModel? cardSource)
     {
-        if (power is VulnerablePower && power.Owner != null && power.Owner != Owner)
-            await PowerCmd.Apply<StrengthPower>(new ThrowingPlayerChoiceContext(), Owner, Amount, Owner, null, false);
+        if (amount <= 0) return;
+        if (power is not VulnerablePower || power.Owner == null || power.Owner == Owner) return;
+        bool givenByOwner = applier == Owner || (applier == null && cardSource?.Owner?.Creature == Owner);
+        if (!givenByOwner) return;
+        await PowerCmd.Apply<StrengthPower>(choiceContext, Owner, Amount, Owner, null, false);
     }
 }
 
