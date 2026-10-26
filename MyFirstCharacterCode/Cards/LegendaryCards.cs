@@ -189,9 +189,8 @@ public static class GrowingBladeTracker
     /// 产生的是未升级的衍生卡，所以不传 upgrade 参数。</summary>
     protected override IEnumerable<IHoverTip> ExtraHoverTips => [HoverTipFactory.FromCard<CasterCalamity>()];
 
-    /// <summary>手牌 / 抽牌堆 / 弃牌堆 / **消耗牌堆** 四处「灾厄」的总数。
-    /// 消耗牌堆要算进去：被消耗的灾厄本体进消耗牌堆，同时 AfterCardExhausted 往弃牌堆塞一份复制品，
-    /// 所以两处各有一份 —— 只数前三堆会少算一半。</summary>
+    /// <summary>手牌 / 抽牌堆 / 弃牌堆 / **消耗牌堆** 四处「灾厄」的总数（与卡面文案一致）。
+    /// 消耗牌堆要算：被消耗的灾厄本体进消耗牌堆、复制品进弃牌堆，设计上两处都计入格挡。</summary>
     private static decimal CountCalamity(CardModel card) {
         Player? owner = card.Owner;
         if (owner == null) return 0m;      // 图鉴/规范实例上 Owner 可能为空
@@ -220,16 +219,24 @@ public static class GrowingBladeTracker
         int repeats = IsUpgraded ? 2 : 1;
         int add = (int)DynamicVars["AddCalamity"].BaseValue;
         for (int i = 0; i < repeats; i++) {
+            // 1) 向手牌添加 2 张「灾厄」
             for (int k = 0; k < add; k++)
                 CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
                     CombatState.CreateCard<CasterCalamity>(Owner), PileType.Hand, Owner));
+            // 2) 消耗所有「灾厄」（手牌 / 抽牌堆 / 弃牌堆）
             var calamities = new List<CardModel>();
             foreach (var pile in new[] { PileType.Hand, PileType.Draw, PileType.Discard })
                 calamities.AddRange(pile.GetPile(Owner).Cards.Where(c => c is CasterCalamity).ToList());
             foreach (var c in calamities) await CardCmd.Exhaust(ctx, c);
+            // 3) 再向弃牌堆添加「等量」灾厄 —— 数量 = 本次消耗掉的张数。
+            //    ⚠ 这一步不能省：CasterCalamity 自身的 AfterCardExhausted 只会给每张被消耗的灾厄补 1 张复制品
+            //    （那是状态牌自己的被动），卡牌文案里的「并添加等量「灾厄」到你的弃牌堆」是额外的一份。
+            //    旧实现漏了这一步 → 例如当前无灾厄时打出：消耗 2 张，弃牌堆只有 2 张（应为 4 张）。
+            for (int k = 0; k < calamities.Count; k++)
+                CardCmd.PreviewCardPileAdd(await CardPileCmd.AddGeneratedCardToCombat(
+                    CombatState.CreateCard<CasterCalamity>(Owner), PileType.Discard, Owner));
         }
-        // 「那之后」= 全部重复结算完之后再数一次。每张被消耗的灾厄都已由 AfterCardExhausted
-        // 往弃牌堆塞了一张复制品，所以计数与文案「手牌，抽牌堆，弃牌堆中灾厄的总数量」自洽。
+        // 「那之后」= 全部重复结算完之后再数一次（手牌 / 抽牌堆 / 弃牌堆 / 消耗牌堆 四处）
         await CreatureCmd.GainBlock(Owner.Creature, DynamicVars.CalculatedBlock.Calculate(play.Target),
                                     DynamicVars.CalculatedBlock.Props, play);
     }
