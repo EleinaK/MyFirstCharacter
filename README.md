@@ -35,7 +35,7 @@
 ### 方式 B：手动安装
 
 1. 先确保 BaseLib ≥ 3.4.5 已安装
-2. 把 **`MyFirstCharacter` 整个文件夹**放进
+2. 从 [Releases](https://github.com/EleinaK/MyFirstCharacter/releases) 下载最新安装包 zip，把 **`MyFirstCharacter` 整个文件夹**放进
    `<Steam>/steamapps/common/Slay the Spire 2/mods/`
 3. 最终路径应为 `mods/MyFirstCharacter/MyFirstCharacter.dll`（不要再套一层同名目录）
 4. 如果 `mods/` 里已有旧版手动安装，先删除或移走——游戏会优先加载本地版并屏蔽工坊版（日志里会有 WARN）
