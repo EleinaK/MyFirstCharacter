@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <!-- 指向 Godot 4.5.1 .NET(Mono) 版可执行文件。
+         注意：游戏不会加载用更新版本 Godot 导出的 .pck，必须用 4.5.1。
+         MegaDot 与官方 Godot mono 均可，下面是 MegaDot 的默认路径示例。 -->
+    <GodotPath>D:/MegaDot/MegaDot_v4.5.1-stable_mono_win64.exe</GodotPath>
+
+    <!-- 如果 Sts2PathDiscovery.props 自动发现不了游戏安装路径，
+         取消下面注释并改成你自己的路径。 -->
+    <!-- <Sts2Path>D:/steam/steamapps/common/Slay the Spire 2</Sts2Path> -->
+  </PropertyGroup>
+</Project>
